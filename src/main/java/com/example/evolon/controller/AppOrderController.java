@@ -33,7 +33,7 @@ public class AppOrderController {
 	private final UserService userService;
 	private final ItemService itemService;
 
-	@Value("${stripe.public.key}")
+	@Value("${stripe.public-key}")
 	private String stripePublicKey;
 
 	public AppOrderController(

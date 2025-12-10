@@ -35,7 +35,7 @@ public class UserService {
 
 	/** メールアドレスでユーザー取得 */
 	public Optional<User> getUserByEmail(String email) {
-		return userRepository.findByEmail(email);
+		return userRepository.findByEmailIgnoreCase(email);
 	}
 
 	/** 新規作成・更新 */

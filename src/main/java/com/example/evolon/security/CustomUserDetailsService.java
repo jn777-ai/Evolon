@@ -21,21 +21,20 @@ public class CustomUserDetailsService implements UserDetailsService {
 
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-		// usernameParameter("email") にしているためフォーム入力値は email
-		User u = users.findByEmail(username)
-				.orElseThrow(() -> new UsernameNotFoundException("User not found: "
-						+ username));
-		// enabled=false、banned=true の場合、ログインを拒否
+
+		User u = users.findByEmailIgnoreCase(username)
+				.orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+
 		if (!u.isEnabled())
-			throw new DisabledException("Account disabled"); // アカウント無効化
+			throw new DisabledException("Account disabled");
+
 		if (u.isBanned())
-			throw new DisabledException("Account banned"); // BAN 済ユーザー
-		// Spring Security の UserDetails へ変換
-		// 付与する権限は ROLE_ プレフィックスが必要
+			throw new DisabledException("Account banned");
+
 		return new org.springframework.security.core.userdetails.User(
-				u.getEmail(), // 認証 ID（メール）
-				u.getPassword(), // ハッシュ化済パスワード
-				List.of(new SimpleGrantedAuthority("ROLE_" + u.getRole())) // 権限
-		);
+				u.getEmail(),
+				u.getPassword(),
+				List.of(new SimpleGrantedAuthority("ROLE_" + u.getRole())));
 	}
+
 }

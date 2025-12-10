@@ -1,0 +1,39 @@
+{
+  "properties": [
+    {
+      "name": "stripe.secret-key",
+      "type": "java.lang.String",
+      "description": "Stripe secret key"
+    },
+    {
+      "name": "stripe.public-key",
+      "type": "java.lang.String",
+      "description": "Stripe public key"
+    },
+    {
+      "name": "line.notify.token",
+      "type": "java.lang.String",
+      "description": "LINE Notify token"
+    },
+    {
+      "name": "line.notify.endpoint",
+      "type": "java.lang.String",
+      "description": "LINE Notify endpoint"
+    },
+    {
+      "name": "cloudinary.api_secret",
+      "type": "java.lang.String",
+      "description": "Cloudinary API secret"
+    },
+    {
+      "name": "cloudinary.api_key",
+      "type": "java.lang.String",
+      "description": "Cloudinary API key"
+    },
+    {
+      "name": "cloudinary.cloud_name",
+      "type": "java.lang.String",
+      "description": "Cloudinary cloud name"
+    }
+  ]
+}
