@@ -89,21 +89,22 @@
 	<h2>チャット</h2>
 
 	<div class="chat-box">
+	    <div th:each="chat : ${chatList}" th:if="${chat != null}">
 
+	        <span class="sender-name"
+	              th:text="${chat.sender != null ? chat.sender.name : '退会ユーザー'}">
+	        </span>
 
-			<!-- 送信者名（sender が null の場合も考慮） -->
-			<span class="sender-name" th:text="${chat.sender != null ? chat.sender.name : '退会ユーザー'}">
-			</span>
+	        <span class="message-time"
+	              th:text="${chat.createdAt != null
+	                ? #temporals.format(chat.createdAt,'yyyy/MM/dd HH:mm')
+	                : ''}">
+	        </span>
 
-			<!-- 送信時刻（null 安全） -->
-			<span class="message-time" th:text="${chat.createdAt != null
-		              ? #temporals.format(chat.createdAt,'yyyy/MM/dd HH:mm')
-		              : ''}">
-			</span>
+	        <p th:text="${chat.message}"></p>
 
-			<!-- メッセージ本文 -->
-			<p th:text="${chat.message}"></p>
-		</div>
+	    </div>
+	</div>
 
 
 
