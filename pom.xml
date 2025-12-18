@@ -108,7 +108,7 @@
     <build>
         <plugins>
 
-            <!-- ★ Lombok を javac に確実に認識させる -->
+          
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
