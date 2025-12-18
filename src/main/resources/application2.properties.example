@@ -1,28 +1,28 @@
 spring.application.name=evolon
 server.port=${SERVER_PORT:8080}
-# DB は必ず環境変数経由
+#DB は必ず環境変数経由
 spring.datasource.url=${DB_URL:jdbc:postgresql://localhost:5432/evolon}
 spring.datasource.username=${DB_USER:postgres}
 spring.datasource.password=${DB_PASSWORD:postgres}
 spring.datasource.hikari.maximum-pool-size=10
-# JPA / Hibernate
+#JPA / Hibernate
 spring.jpa.open-in-view=false
-# schema.sql を使うため none
+#schema.sql を使うため none
 spring.jpa.hibernate.ddl-auto=none 
 spring.jpa.properties.hibernate.jdbc.time_zone=UTC
 spring.jpa.show-sql=false
 spring.jpa.properties.hibernate.format_sql=true
-# SQL 初期化（schema.sql / data.sql を使う）
+#SQL 初期化（schema.sql / data.sql を使う）
 spring.sql.init.mode=always
 spring.sql.init.encoding=UTF-8
-# Thymeleaf
+#Thymeleaf
 spring.thymeleaf.cache=${THYMELEAF_CACHE:true}
-# Actuator（ヘルスチェックのみ外部公開）
+#Actuator（ヘルスチェックのみ外部公開）
 management.endpoints.web.exposure.include=health,info
 management.endpoint.health.show-details=never
-# セキュリティ（フォームログイン前提の最小セット想定）
-# 追加の詳細は SecurityConfig で管理
-# 外部連携キー（ローカル用ダミー付き）
+#セキュリティ（フォームログイン前提の最小セット想定）
+#追加の詳細は SecurityConfig で管理
+#外部連携キー（ローカル用ダミー付き）
 stripe.public-key=${STRIPE_PUBLIC_KEY:dummy}
 stripe.secret-key=${STRIPE_SECRET_KEY:dummy}
 
@@ -31,9 +31,9 @@ cloudinary.api_key=${CLOUDINARY_API_KEY:dummy}
 cloudinary.api_secret=${CLOUDINARY_API_SECRET:dummy}
 cloudinary.enabled= true
 
-line.notify.endpoint=${LINE_NOTIFY_ENDPOINT:https://notify-api.line.me/api/notify}
+line.notify.endpoint=${LINE_NOTIFY_ENDPOINT:https://notify-api.line.me/api/notify%7D
 line.notify.token=${LINE_NOTIFY_TOKEN:}
 
-# ログ
+#ログ
 logging.level.root=${LOGGING_LEVEL:INFO}
 logging.level.org.springframework.security=INFO
