@@ -47,6 +47,17 @@
 			カテゴリ：
 			<span th:text="${item.category != null ? item.category.name : '未分類'}"></span>
 		</p>
+		<!-- ★ 発送目安を追加 -->
+		<p>
+		    発送目安：
+		    <span th:text="${item.shippingDuration != null ? item.shippingDuration.label : '未設定'}"></span>
+		</p>
+		<!-- ★ 送料負担 -->
+		<p>
+		    送料負担：
+		    <span th:text="${item.shippingFeeBurden != null ? item.shippingFeeBurden.label : '未設定'}"></span>
+		</p>
+
 
 		<!-- 出品者 -->
 		<p>
