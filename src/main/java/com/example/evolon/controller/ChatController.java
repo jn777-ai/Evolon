@@ -87,7 +87,5 @@ public class ChatController {
 		return "redirect:/items/{itemId}";
 
 		// 同じ商品のチャット画面へリダイレクトし、最新のメッセージ一覧を再表示
-		return "redirect:/chat/{itemId}";
-
 	}
 }

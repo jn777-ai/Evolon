@@ -1,142 +1,203 @@
 package com.example.evolon.service;
 
-//I/O 例外処理に必要な import
+// =========================
+// import
+// =========================
+
+// 画像アップロード（MultipartFile#getBytes）で IOException が起こりうる
 import java.io.IOException;
-//一覧返却で使う List を import
+// 価格検索用
+import java.math.BigDecimal;
+// コレクション
 import java.util.List;
-//Optional で安全に扱うための import
 import java.util.Optional;
 
-//ページング条件の型を import
+// Spring Data（ページング）
 import org.springframework.data.domain.Page;
-//ページングリクエスト生成用の型を import
 import org.springframework.data.domain.PageRequest;
-//ページングインターフェイスの型を import
 import org.springframework.data.domain.Pageable;
-//DI 対象のサービスであることを示すアノテーションを import
+// Service
 import org.springframework.stereotype.Service;
-//ファイルアップロードに使う MultipartFile を import
+// ファイルアップロード
 import org.springframework.web.multipart.MultipartFile;
 
-//Item エンティティを扱うための import
+// Enum（ポケモンカード検索用）
+import com.example.evolon.domain.enums.CardCondition;
+import com.example.evolon.domain.enums.ListingType;
+import com.example.evolon.domain.enums.Rarity;
+import com.example.evolon.domain.enums.Regulation;
+// Entity
 import com.example.evolon.entity.Item;
-//User エンティティを扱うための import
 import com.example.evolon.entity.User;
-//ページング付き検索で利用するリポジトリを import
+// Repository
 import com.example.evolon.repository.ItemRepository;
 
-//サービス層として登録
 @Service
 public class ItemService {
-	//商品リポジトリの参照
+
+	// =========================
+	// フィールド
+	// =========================
 	private final ItemRepository itemRepository;
-	//カテゴリ関連のユースケースに備えてサービス参照を保持
+
+	// プロジェクト構成によっては他機能で必要になる可能性があるため残す
+	// （未使用なら IDE が警告を出すだけで動作には影響しない）
 	private final CategoryService categoryService;
-	//画像アップロード/削除のための Cloudinary サービス参照
+
 	private final CloudinaryService cloudinaryService;
 
-	//依存性はコンストラクタで注入
-	public ItemService(ItemRepository itemRepository, CategoryService categoryService,
+	// =========================
+	// コンストラクタ
+	// =========================
+	public ItemService(
+			ItemRepository itemRepository,
+			CategoryService categoryService,
 			CloudinaryService cloudinaryService) {
-		//フィールドへ商品リポジトリを設定
+
 		this.itemRepository = itemRepository;
-		//フィールドへカテゴリサービスを設定
 		this.categoryService = categoryService;
-		//フィールドへ Cloudinary サービスを設定
 		this.cloudinaryService = cloudinaryService;
 	}
 
-	//商品検索：キーワード/カテゴリ/ページングを組み合わせ、公開中のみ返す
+	// =========================
+	// 通常の商品検索（一覧画面用）
+	// ・ステータス「出品中」のみを対象に絞る
+	// =========================
 	public Page<Item> searchItems(String keyword, Long categoryId, int page, int size) {
-		//ページング指定を生成
+
 		Pageable pageable = PageRequest.of(page, size);
-		//キーワードとカテゴリ両方指定時の検索
+
+		// キーワード＋カテゴリ
 		if (keyword != null && !keyword.isEmpty() && categoryId != null) {
-			//名前 LIKE×カテゴリ×出品中で検索
-			return itemRepository.findByNameContainingIgnoreCaseAndCategoryIdAndStatus(keyword, categoryId, "出品中",
-					pageable);
-			//キーワードのみ指定時の検索
-		} else if (keyword != null && !keyword.isEmpty()) {
-			//名前 LIKE×出品中で検索
-			return itemRepository.findByNameContainingIgnoreCaseAndStatus(keyword, "出品中",
-					pageable);
-			//カテゴリのみ指定時の検索
-		} else if (categoryId != null) {
-			//カテゴリ×出品中で検索
-			return itemRepository.findByCategoryIdAndStatus(categoryId, "出品中", pageable);
-			//条件未指定時のデフォルト検索
-		} else {
-			//出品中のみ全件ページングで返す
-			return itemRepository.findByStatus("出品中", pageable);
+			return itemRepository.findByNameContainingIgnoreCaseAndCategoryIdAndStatus(
+					keyword, categoryId, "出品中", pageable);
 		}
+
+		// キーワードのみ
+		if (keyword != null && !keyword.isEmpty()) {
+			return itemRepository.findByNameContainingIgnoreCaseAndStatus(
+					keyword, "出品中", pageable);
+		}
+
+		// カテゴリのみ
+		if (categoryId != null) {
+			return itemRepository.findByCategoryIdAndStatus(
+					categoryId, "出品中", pageable);
+		}
+
+		// 条件なし（出品中の全件）
+		return itemRepository.findByStatus("出品中", pageable);
 	}
 
-	//全商品一覧を返す（管理用など）
+	// =========================
+	// ★ ポケモンカード詳細検索
+	// ・null / 空文字は Repository 側のJPQLで無視する想定
+	// =========================
+	public Page<Item> searchPokemonCards(
+			String cardName,
+			Rarity rarity,
+			Regulation regulation,
+			String packName,
+			CardCondition condition,
+			ListingType listingType,
+			BigDecimal minPrice,
+			BigDecimal maxPrice,
+			Pageable pageable) {
+
+		return itemRepository.searchPokemonCards(
+				cardName,
+				rarity,
+				regulation,
+				packName,
+				condition,
+				listingType,
+				minPrice,
+				maxPrice,
+				pageable);
+	}
+
+	// =========================
+	// 全商品取得（管理者用）
+	// =========================
 	public List<Item> getAllItems() {
-		//リポジトリの全件取得を委譲
 		return itemRepository.findAll();
 	}
 
-	//主キーで商品を取得
+	// =========================
+	// 商品ID取得（通常）
+	// =========================
 	public Optional<Item> getItemById(Long id) {
-		//Optional をそのまま返却
 		return itemRepository.findById(id);
 	}
 
+	// =========================
+	// 商品ID取得（互換用）
+	// ※ origin/main 側で findById を呼んでいる可能性があるため残す
+	// =========================
 	public Optional<Item> findById(Long id) {
 		return itemRepository.findById(id);
 	}
 
-	//商品保存：必要なら画像を Cloudinary へアップロードして URL を保存
+	// =========================
+	// 商品保存（画像対応）
+	// ・画像がある場合は Cloudinary にアップロードして URL を保存
+	// =========================
 	public Item saveItem(Item item, MultipartFile imageFile) throws IOException {
-		//画像が添付されている場合にのみアップロード処理を実行
+
+		// 画像がある場合のみアップロード
 		if (imageFile != null && !imageFile.isEmpty()) {
-			//Cloudinary へアップロードし URL を受け取る
 			String imageUrl = cloudinaryService.uploadFile(imageFile);
-			//画像 URL をエンティティへ設定
 			item.setImageUrl(imageUrl);
 		}
-		//商品を保存して返す
+
+		// DBに保存
 		return itemRepository.save(item);
 	}
 
-	//商品削除：Cloudinary 上の画像も可能なら削除してから DB 削除
+	// =========================
+	// 商品削除
+	// ・画像があれば Cloudinary からも削除してからDB削除
+	// =========================
 	public void deleteItem(Long id) {
-		//まず対象商品を取得し、存在する場合のみ削除処理を進める
+
 		itemRepository.findById(id).ifPresent(item -> {
-			//画像 URL がある場合は Cloudinary 側の削除を試みる
+
+			// 画像があれば削除
 			if (item.getImageUrl() != null) {
-				// 例外処理は CloudinaryService 側に任せる
 				cloudinaryService.deleteFile(item.getImageUrl());
 			}
-			//最後に DB から商品レコードを削除
+
 			itemRepository.deleteById(id);
 		});
 	}
 
-	//出品者の出品一覧を取得
+	// =========================
+	// 出品者別の商品一覧
+	// =========================
 	public List<Item> getItemsBySeller(User seller) {
-		//seller 条件で検索
 		return itemRepository.findBySeller(seller);
 	}
 
-	//売却確定：商品ステータスを売却済へ変更
+	// =========================
+	// 売却確定
+	// =========================
 	public void markItemAsSold(Long itemId) {
-		//商品を取得して存在する場合のみ更新
 		itemRepository.findById(itemId).ifPresent(item -> {
-			//ステータスを売却済に変更
 			item.setStatus("売却済");
-			//変更を保存
 			itemRepository.save(item);
 		});
 	}
 
-	// 管理者ダッシュボード用：最近の出品
+	// =========================
+	// 最近の出品（管理者ダッシュボード用）
+	// =========================
 	public List<Item> getRecentItems() {
 		return itemRepository.findTop5ByOrderByCreatedAtDesc();
 	}
 
-	// 商品を非公開にする
+	// =========================
+	// 商品を非公開にする（管理者用）
+	// =========================
 	public void unpublishItem(Long itemId) {
 		itemRepository.findById(itemId).ifPresent(item -> {
 			item.setStatus("非公開");
@@ -144,12 +205,13 @@ public class ItemService {
 		});
 	}
 
-	// 商品を再公開する
+	// =========================
+	// 商品を再公開する（管理者用）
+	// =========================
 	public void publishItem(Long itemId) {
 		itemRepository.findById(itemId).ifPresent(item -> {
 			item.setStatus("出品中");
 			itemRepository.save(item);
 		});
 	}
-
 }

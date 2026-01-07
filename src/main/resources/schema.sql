@@ -1,17 +1,17 @@
--- ========== CLEAN DROP (依存順) ==========
+-- CLEAN DROP (依存順にテーブル削除)
 DROP TABLE IF EXISTS chat CASCADE;
 DROP TABLE IF EXISTS favorite_item CASCADE;
 DROP TABLE IF EXISTS review CASCADE;
 DROP TABLE IF EXISTS app_order CASCADE;
+DROP TABLE IF EXISTS card_info CASCADE;
 DROP TABLE IF EXISTS item CASCADE;
 DROP TABLE IF EXISTS category CASCADE;
 DROP TABLE IF EXISTS review_stats CASCADE;
-DROP TABLE IF EXISTS card_info CASCADE;
 DROP TABLE IF EXISTS user_complaint CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS inquiry CASCADE;
 
--- ========== CREATE ==========
--- ユーザー情報
+-- ユーザー情報テーブル
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
@@ -24,31 +24,28 @@ CREATE TABLE users (
     ban_reason TEXT,
     banned_at TIMESTAMP,
     banned_by_admin_id INT,
-    -- パスワード再設定用
+    -- パスワード再設定用トークン
     reset_token VARCHAR(255),
     reset_token_expires_at TIMESTAMP
 );
 
--- カテゴリ
+-- カテゴリテーブル
 CREATE TABLE category (
     id SERIAL PRIMARY KEY,
     name VARCHAR(50) NOT NULL UNIQUE
 );
 
--- 商品
+-- 商品テーブル
 CREATE TABLE item (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULL,
     name VARCHAR(255) NOT NULL,
     description TEXT,
     price NUMERIC(10,2) NOT NULL,
-
     shipping_duration VARCHAR(50) NOT NULL,
     shipping_fee_burden VARCHAR(50) NOT NULL,
     shipping_region VARCHAR(50) NOT NULL DEFAULT '未設定',
     shipping_method VARCHAR(50) NOT NULL DEFAULT 'OTHER',
-
-
     category_id INT,
     status VARCHAR(20) DEFAULT '出品中',
     listing_type VARCHAR(50),
@@ -58,12 +55,11 @@ CREATE TABLE item (
     postage NUMERIC(10,2),
     local VARCHAR(255),
     condition VARCHAR(255),
-
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (category_id) REFERENCES category(id)
 );
 
--- 注文
+-- 注文テーブル
 CREATE TABLE app_order (
     id SERIAL PRIMARY KEY,
     item_id INT NOT NULL,
@@ -76,7 +72,7 @@ CREATE TABLE app_order (
     FOREIGN KEY (buyer_id) REFERENCES users(id)
 );
 
--- チャット
+-- チャットテーブル
 CREATE TABLE chat (
     id SERIAL PRIMARY KEY,
     item_id INT NOT NULL,
@@ -89,7 +85,7 @@ CREATE TABLE chat (
     FOREIGN KEY (sender_id) REFERENCES users(id)
 );
 
--- お気に入り
+-- お気に入りテーブル
 CREATE TABLE favorite_item (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULL,
@@ -100,7 +96,7 @@ CREATE TABLE favorite_item (
     FOREIGN KEY (item_id) REFERENCES item(id)
 );
 
--- レビュー
+-- レビューテーブル
 CREATE TABLE review (
     id SERIAL PRIMARY KEY,
     order_id INT NOT NULL UNIQUE,
@@ -116,7 +112,7 @@ CREATE TABLE review (
     FOREIGN KEY (item_id) REFERENCES item(id)
 );
 
--- レビュー統計
+-- レビュー統計テーブル
 CREATE TABLE review_stats (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULL,
@@ -126,19 +122,23 @@ CREATE TABLE review_stats (
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
--- カード情報
+-- カード情報テーブル
 CREATE TABLE card_info (
     id SERIAL PRIMARY KEY,
     item_id INT NOT NULL,
-    pack VARCHAR(255),
-    rarity VARCHAR(50),
-    regulation VARCHAR(50),
+    card_name VARCHAR(255) NOT NULL,    
+    pack_name VARCHAR(255),              
+    pack VARCHAR(255),                  
+    rarity VARCHAR(50),             
+    regulation VARCHAR(50),          
+    -- カード状態 (MINT, NEAR_MINT, USED 等)
+    condition VARCHAR(50) NOT NULL DEFAULT 'MINT',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (item_id) REFERENCES item(id)
 );
 
--- 通報
+-- 通報テーブル
 CREATE TABLE user_complaint (
     id SERIAL PRIMARY KEY,
     reported_user_id INT NOT NULL,
@@ -149,8 +149,8 @@ CREATE TABLE user_complaint (
     FOREIGN KEY (reporter_user_id) REFERENCES users(id)
 );
 
--- 問い合わせ
-CREATE TABLE IF NOT EXISTS inquiry (
+-- 問い合わせテーブル
+CREATE TABLE inquiry (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULL,
     subject VARCHAR(255) NOT NULL,
@@ -162,7 +162,7 @@ CREATE TABLE IF NOT EXISTS inquiry (
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
--- ========== INDEX ==========
+-- INDEX 作成
 CREATE INDEX idx_users_banned ON users(banned);
 CREATE INDEX idx_users_banned_by ON users(banned_by_admin_id);
 CREATE INDEX idx_item_user_id ON item(user_id);
