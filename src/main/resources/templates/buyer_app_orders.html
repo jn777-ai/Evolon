@@ -22,34 +22,33 @@
             <th>出品者</th>
             <th>価格</th>
             <th>ステータス</th>
+            <th>操作</th>
         </tr>
         </thead>
+		<tbody>
+		  <tr th:each="order : ${myOrders}">
+		      <td th:text="${order.item.name}"></td>
+		      <td th:text="${order.item.seller.name}"></td>
+		      <td th:text="'¥' + ${#numbers.formatDecimal(order.price, 0, 'COMMA', 0, 'POINT')}"></td>
+		      <td th:text="${order.orderStatus.label}"></td>
+		      <td>
+		        <a th:href="@{/orders/{id}(id=${order.id})}" class="button">
+		          取引詳細
+		        </a>
+		      </td>
+		  </tr>
 
-        <tbody>
-			<tbody>
+		  <tr th:if="${#lists.isEmpty(myOrders)}">
+		      <td colspan="5">購入した商品はありません。</td>
+		  </tr>
+		</tbody>
 
-			    <!-- 購入履歴がある場合 -->
-			    <tr th:each="order : ${myOrders}">
-			        <td th:text="${order.item.name}"></td>
-			        <td th:text="${order.item.seller.name}"></td>
-			        <td th:text="'¥' + ${#numbers.formatDecimal(order.price, 0, 'COMMA', 0, 'POINT')}"></td>
-			        <td th:text="${order.orderStatus.label}"></td>
-			    </tr>
-
-			    <!-- 購入履歴が空の場合 -->
-			    <tr th:if="${#lists.isEmpty(myOrders)}">
-			        <td colspan="4">購入した商品はありません。</td>
-			    </tr>
-
-			</tbody>
     </table>
 
     <div class="button-group">
         <a th:href="@{/my-page}" class="button secondary">マイページに戻る</a>
-		<a th:href="@{/items}" class="button secondary">商品一覧に戻る</a>
+        <a th:href="@{/items}" class="button secondary">商品一覧に戻る</a>
     </div>
-	
-
 
 </div>
 </body>

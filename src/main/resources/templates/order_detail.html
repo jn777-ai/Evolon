@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ja"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <title>取引詳細</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+
+<body>
+<div class="container">
+
+    <h1>取引詳細</h1>
+
+    <!-- ================= 商品情報 ================= -->
+    <section class="card">
+        <!-- ★ item は model に無いので order 経由 -->
+        <h2 th:text="${order.item.name}">商品名</h2>
+
+        <p>
+            価格：
+            <span th:text="'¥' + ${#numbers.formatDecimal(order.price,0,'COMMA',0,'POINT')}"></span>
+        </p>
+
+        <p>
+            ステータス：
+            <strong th:text="${order.orderStatus.label}"></strong>
+        </p>
+    </section>
+
+    <!-- ================= 出品者：発送 ================= -->
+    <section th:if="${canShip}">
+        <form th:action="@{/orders/{id}/ship(id=${order.id})}" method="post">
+            <button class="button">発送済みにする</button>
+        </form>
+    </section>
+
+    <!-- ================= 購入者：到着確認 ================= -->
+    <section th:if="${canDeliver}">
+        <form th:action="@{/orders/{id}/deliver(id=${order.id})}" method="post">
+            <button class="button">到着確認</button>
+        </form>
+    </section>
+
+    <!-- ================= チャット ================= -->
+    <section class="card">
+        <h2>取引メッセージ</h2>
+
+        <div class="chat-box">
+            <div th:each="chat : ${chats}" class="chat-message">
+                <strong th:text="${chat.sender.name}"></strong>：
+                <span th:text="${chat.message}"></span>
+                <small th:text="${#temporals.format(chat.createdAt,'MM/dd HH:mm')}"></small>
+            </div>
+
+            <p th:if="${#lists.isEmpty(chats)}">まだメッセージはありません</p>
+        </div>
+
+        <form th:action="@{/orders/{id}/chat(id=${order.id})}" method="post">
+            <textarea name="message" required></textarea>
+            <button class="button">送信</button>
+        </form>
+    </section>
+
+    <!-- ================= 購入者の評価 ================= -->
+    <section th:if="${canBuyerReview}" class="card">
+        <h2>出品者を評価する</h2>
+
+        <!-- ★ controller は /review 1本化 -->
+        <form th:action="@{/orders/{id}/review(id=${order.id})}" method="post">
+            <select name="result" required>
+                <option value="GOOD">良い</option>
+                <option value="BAD">悪い</option>
+            </select>
+
+            <textarea name="comment" placeholder="コメントを入力" required></textarea>
+            <button class="button">評価する</button>
+        </form>
+    </section>
+
+    <!-- ================= 出品者の評価 ================= -->
+    <section th:if="${canSellerReview}" class="card">
+        <h2>購入者を評価する</h2>
+
+        <!-- ★ /BAD のみ） -->
+        <form th:action="@{/orders/{id}/review(id=${order.id})}" method="post">
+            <select name="result" required>
+                <option value="GOOD">良い</option>
+                <option value="BAD">悪い</option>
+            </select>
+
+            <textarea name="comment" placeholder="コメントを入力" required></textarea>
+            <button class="button">評価する</button>
+        </form>
+    </section>
+
+    <!-- ================= 完了 ================= -->
+    <section th:if="${!canBuyerReview and !canSellerReview and order.orderStatus.name() == 'COMPLETED'}">
+        <p class="success">この取引は完了しました</p>
+    </section>
+
+    <div class="button-group">
+        <a th:href="@{/my-page/orders}" class="button secondary">取引一覧に戻る</a>
+    </div>
+
+</div>
+</body>
+</html>

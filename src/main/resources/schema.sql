@@ -8,6 +8,7 @@ DROP TABLE IF EXISTS category CASCADE;
 DROP TABLE IF EXISTS review_stats CASCADE;
 DROP TABLE IF EXISTS card_info CASCADE;
 DROP TABLE IF EXISTS user_complaint CASCADE;
+DROP TABLE IF EXISTS inquiry CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 
 -- ========== CREATE ==========
@@ -24,7 +25,7 @@ CREATE TABLE users (
     ban_reason TEXT,
     banned_at TIMESTAMP,
     banned_by_admin_id INT,
-    --パスワード再設定用
+    -- パスワード再設定用
     reset_token VARCHAR(255),
     reset_token_expires_at TIMESTAMP
 );
@@ -81,7 +82,6 @@ CREATE TABLE app_order (
     FOREIGN KEY (buyer_id) REFERENCES users(id)
 );
 
-
 -- チャット
 CREATE TABLE chat (
     id SERIAL PRIMARY KEY,
@@ -112,7 +112,7 @@ CREATE TABLE review (
 
     order_id INT NOT NULL,
     reviewer_id INT NOT NULL,
-    reviewee_id INT NOT NULL,     -- 追加（評価される人）
+    reviewee_id INT NOT NULL,     -- 評価される人
 
     -- 旧互換（残す）
     seller_id INT NOT NULL,
@@ -131,22 +131,9 @@ CREATE TABLE review (
     FOREIGN KEY (seller_id) REFERENCES users(id),
     FOREIGN KEY (item_id) REFERENCES item(id),
 
-    -- ★ここが重要：1注文×同一レビュワーは1回まで
+    -- 1注文×同一レビュワーは1回まで（購入者レビューと出品者レビューを両方許可）
     UNIQUE (order_id, reviewer_id)
 );
-
--- 既存の idx は order_id でOK
-CREATE INDEX idx_review_order_id ON review(order_id);
-CREATE INDEX idx_review_reviewee_id ON review(reviewee_id);
-
-
-    FOREIGN KEY (order_id) REFERENCES app_order(id),
-    FOREIGN KEY (reviewer_id) REFERENCES users(id),
-    FOREIGN KEY (seller_id) REFERENCES users(id),
-    FOREIGN KEY (item_id) REFERENCES item(id),
-    FOREIGN KEY (reviewee_id) REFERENCES users(id)
-);
-
 
 -- レビュー統計
 CREATE TABLE review_stats (
@@ -181,7 +168,8 @@ CREATE TABLE user_complaint (
     FOREIGN KEY (reporter_user_id) REFERENCES users(id)
 );
 
-CREATE TABLE IF NOT EXISTS inquiry (
+-- 問い合わせ
+CREATE TABLE inquiry (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULL,
     subject VARCHAR(255) NOT NULL,
@@ -193,22 +181,26 @@ CREATE TABLE IF NOT EXISTS inquiry (
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
-
-
-
 -- ========== INDEX ==========
 CREATE INDEX idx_users_banned ON users(banned);
 CREATE INDEX idx_users_banned_by ON users(banned_by_admin_id);
+
 CREATE INDEX idx_item_user_id ON item(user_id);
 CREATE INDEX idx_item_category_id ON item(category_id);
+
 CREATE INDEX idx_order_item_id ON app_order(item_id);
 CREATE INDEX idx_order_buyer_id ON app_order(buyer_id);
 CREATE UNIQUE INDEX ux_order_pi ON app_order(payment_intent_id);
+
 CREATE INDEX idx_chat_item_id ON chat(item_id);
 CREATE INDEX idx_chat_sender_id ON chat(sender_id);
+
 CREATE INDEX idx_fav_user_id ON favorite_item(user_id);
 CREATE INDEX idx_fav_item_id ON favorite_item(item_id);
+
+-- review: order_id / reviewee_id はよく使う
 CREATE INDEX idx_review_order_id ON review(order_id);
+CREATE INDEX idx_review_reviewee_id ON review(reviewee_id);
+
 CREATE INDEX idx_uc_reported ON user_complaint(reported_user_id);
 CREATE INDEX idx_uc_reporter ON user_complaint(reporter_user_id);
-

@@ -5,7 +5,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>販売履歴 - フリマアプリ</title>
+    <title>販売履歴</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 
@@ -29,27 +29,22 @@
         <tbody>
         <!-- 販売履歴がある場合 -->
         <tr th:each="order : ${mySales}">
-            <td th:text="${order.item.name}"></td>
-            <td th:text="${order.buyer.name}"></td>
+            <td th:text="${order.item.name}">商品名</td>
+            <td th:text="${order.buyer.name}">購入者</td>
             <td th:text="'¥' + ${#numbers.formatDecimal(order.price, 0, 'COMMA', 0, 'POINT')}"></td>
-
-            <!-- enumのラベル表示 -->
             <td th:text="${order.orderStatus.label}"></td>
 
-            <!-- 発送操作：PURCHASED（=発送待ち）のときだけ -->
             <td>
-				<form th:if="${order.orderStatus.name() == 'PURCHASED'}"
-				      th:action="@{/orders/{id}/ship(id=${order.id})}"
-				      method="post">
-				  <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-				  <button type="submit" class="button">発送済みにする</button>
-				</form>
-                <!-- すでに発送済み・到着確認済みのときの表示 -->
-                <span th:if="${order.orderStatus.name() != 'PURCHASED'}">-</span>
+                <!-- 取引詳細（★これが重要） -->
+                <a th:href="@{/orders/{id}(id=${order.id})}"
+                   class="button secondary">
+                    取引詳細
+                </a>
+
             </td>
         </tr>
 
-        <!-- 販売履歴が空の場合 -->
+        <!-- 空の場合 -->
         <tr th:if="${#lists.isEmpty(mySales)}">
             <td colspan="5">販売した商品はありません。</td>
         </tr>
