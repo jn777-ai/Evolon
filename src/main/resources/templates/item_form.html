@@ -24,6 +24,10 @@
             <!-- PUT メソッドが必要な場合は hidden で送信 -->
             <input type="hidden" th:if="${item.id != null}" name="_method" value="put">
 
+            <!-- ========================= -->
+            <!-- 基本情報入力欄 -->
+            <!-- ========================= -->
+
             <!-- 商品名 -->
             <p>
                 <label for="name">商品名:</label>
@@ -47,7 +51,6 @@
                 <label for="shippingDuration">発送目安:</label>
                 <select id="shippingDuration" name="shippingDuration" required>
                     <option value="">選択してください</option>
-                    <!-- Enum の値をループで表示 -->
                     <option th:each="sd : ${shippingDurations}"
                             th:value="${sd.name()}"
                             th:text="${sd.label}"
@@ -61,7 +64,6 @@
                 <label for="shippingFeeBurden">送料負担:</label>
                 <select id="shippingFeeBurden" name="shippingFeeBurden" required>
                     <option value="">選択してください</option>
-                    <!-- Enum の値をループで表示 -->
                     <option th:each="fb : ${shippingFeeBurdens}"
                             th:value="${fb.name()}"
                             th:text="${fb.label}"
@@ -75,7 +77,6 @@
                 <label for="shippingRegion">発送地域:</label>
                 <select id="shippingRegion" name="shippingRegion" required>
                     <option value="">選択してください</option>
-                    <!-- Enum ShippingRegion の値をループで表示 -->
                     <option th:each="region : ${shippingRegions}"
                             th:value="${region.name()}"
                             th:text="${region.label}"
@@ -83,26 +84,25 @@
                     </option>
                 </select>
             </p>
-			
-			<!-- 発送方法 -->
-			<p>
-			    発送方法：
-			    <select name="shippingMethod" required>
-			        <option th:each="method : ${shippingMethods}"
-			                th:value="${method}"
-			                th:text="${method.label}"
-			                th:selected="${item.shippingMethod == method}">
-			        </option>
-			    </select>
-			</p>
 
+            <!-- 発送方法 -->
+            <p>
+                <label for="shippingMethod">発送方法:</label>
+                <select id="shippingMethod" name="shippingMethod" required>
+                    <option value="">選択してください</option>
+                    <option th:each="method : ${shippingMethods}"
+                            th:value="${method.name()}"
+                            th:text="${method.label}"
+                            th:selected="${item.shippingMethod == method}">
+                    </option>
+                </select>
+            </p>
 
             <!-- カテゴリ -->
             <p>
                 <label for="categoryId">カテゴリ:</label>
                 <select id="categoryId" name="categoryId" required>
                     <option value="">選択してください</option>
-                    <!-- カテゴリリストをループで表示 -->
                     <option th:each="category : ${categories}" 
                             th:value="${category.id}" 
                             th:text="${category.name}"
@@ -122,7 +122,67 @@
                 </span>
             </p>
 
+            <!-- ========================= -->
+            <!-- ★ カード情報入力欄 -->
+            <!-- name 属性を cardInfo.XXX に変更することで Item.cardInfo にバインド可能 -->
+            <!-- ========================= -->
+
+            <!-- カード名 -->
+            <p>
+                <label for="cardName">カード名:</label>
+                <input type="text" id="cardName" name="cardInfo.cardName" 
+                       th:value="${item.cardInfo != null ? item.cardInfo.cardName : ''}">
+            </p>
+
+            <!-- レアリティ -->
+            <p>
+                <label for="rarity">レアリティ:</label>
+                <select id="rarity" name="cardInfo.rarity">
+                    <option value="">選択してください</option>
+                    <option th:each="r : ${rarities}"
+                            th:value="${r.name()}"
+                            th:text="${r.label}"
+                            th:selected="${item.cardInfo != null ? item.cardInfo.rarity == r : false}">
+                    </option>
+                </select>
+            </p>
+
+            <!-- 封入パック -->
+            <p>
+                <label for="packName">封入パック:</label>
+                <input type="text" id="packName" name="cardInfo.packName" 
+                       th:value="${item.cardInfo != null ? item.cardInfo.packName : ''}">
+            </p>
+
+            <!-- カード状態 -->
+            <p>
+                <label for="condition">状態:</label>
+                <select id="condition" name="cardInfo.condition">
+                    <option value="">選択してください</option>
+                    <option th:each="c : ${conditions}"
+                            th:value="${c.name()}"
+                            th:text="${c.label}"
+                            th:selected="${item.cardInfo != null ? item.cardInfo.condition == c : false}">
+                    </option>
+                </select>
+            </p>
+
+            <!-- レギュレーション -->
+            <p>
+                <label for="regulation">レギュレーション:</label>
+                <select id="regulation" name="cardInfo.regulation">
+                    <option value="">選択してください</option>
+                    <option th:each="r : ${regulations}"
+                            th:value="${r.name()}"
+                            th:text="${r.label}"
+                            th:selected="${item.cardInfo != null ? item.cardInfo.regulation == r : false}">
+                    </option>
+                </select>
+            </p>
+
+            <!-- ========================= -->
             <!-- ボタン群 -->
+            <!-- ========================= -->
             <div class="button-group">
                 <button type="submit" class="button primary" 
                         th:text="${item.id == null ? '出品する' : '更新する'}">

@@ -1,116 +1,208 @@
 <!-- HTML5 文書であることを宣言 -->
 <!DOCTYPE html>
-<!-- ルート要素。言語=日本語、Thymeleaf の名前空間を宣言 -->
 <html lang="ja" xmlns:th="http://www.thymeleaf.org">
-<!-- ヘッダー領域：メタ情報・タイトル・スタイル読込 -->
-
 <head>
-	<!-- 文字コードを UTF-8 に設定 -->
-	<meta charset="UTF-8">
-	<!-- タブに表示されるページタイトル -->
-	<title>商品一覧 - フリマアプリ</title>
-	<!-- 共通スタイルシートを読み込み -->
-	<link rel="stylesheet" th:href="@{/css/style.css}">
+    <meta charset="UTF-8">
+    <title>商品一覧</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
-<!-- 画面本体 -->
 
 <body>
-	<!-- レイアウト中央寄せのコンテナ -->
-	<div class="container">
-		<!-- ページ見出し -->
-		<h1>商品一覧</h1>
-		<!-- 主要ナビゲーション（出品・マイページ・ログアウト） -->
-		<div class="main-nav">
-			<!-- 新規出品画面へのリンク -->
-			<a th:href="@{/items/new}" class="button">商品を出品する</a>
-			<!-- マイページへのリンク -->
-			<a th:href="@{/my-page}" class="button">マイページ</a>
-			<!-- ログアウト送信フォーム（POST で送信） -->
-			<form th:action="@{/logout}" method="post" style="display:inline;">
-				<!-- ログアウトボタン（見た目だけリンク風） -->
-				<button type="submit" class="button secondary">ログアウト</button>
-			</form>
-		</div>
-		<!-- 検索・絞り込みフォーム（GET で自身のページへ） -->
-		<form th:action="@{/items}" method="get" class="filter-form">
-			<!-- キーワード入力ブロック -->
-			<div>
-				<!-- キーワード入力欄のラベル -->
-				<label for="keyword">キーワード:</label>
-				<!-- 直近の検索値を保持して入力欄に反映 -->
-				<input type="text" id="keyword" name="keyword" th:value="${param.keyword}">
-			</div>
-			<!-- カテゴリ選択ブロック -->
-			<div>
-				<!-- カテゴリ選択のラベル -->
-				<label for="categoryId">カテゴリ:</label>
-				<!-- 全カテゴリを選択肢として表示（空=全て） -->
-				<select id="categoryId" name="categoryId">
-					<!-- 全カテゴリを対象にするための空選択肢 -->
-					<option value="">全て</option>
-					<!-- categories をループして option 生成。URL パラメータと一致なら選択状態に-->
-					<option th:each="category : ${categories}" th:value="${category.id}" th:text="${category.name}"
-						th:selected="${param.categoryId == category.id}"></option>
-				</select>
-			</div>
-			<!-- 検索実行ボタン -->
-			<button type="submit" class="button">検索</button>
-		</form>
-		<!-- 商品カード一覧（レスポンシブグリッド） -->
-		<div class="item-grid">
-			<!-- Page<Item>の content を回して 1 カードずつ描画 -->
-			<div class="item-card" th:each="item : ${items.content}">
-				<!-- 詳細画面へのリンク全体でカード化 -->
-				<a th:href="@{/items/{id}(id=${item.id})}">
+<div class="container">
 
-					<!-- 画像 URL があれば表示 -->
-					<img th:if="${item.imageUrl != null}" th:src="${item.imageUrl}" alt="商品画像">
+    <!-- ========================= -->
+    <!-- ページタイトル -->
+    <!-- ========================= -->
+    <h1>商品一覧</h1>
 
-					<!-- 画像 URL がなければプレースホルダ -->
-					<img th:if="${item.imageUrl == null}" th:src="@{/images/placeholder.png}" alt="商品画像">
+    <!-- ========================= -->
+    <!-- ナビゲーション -->
+    <!-- ========================= -->
+    <div class="main-nav">
+        <a th:href="@{/items/new}" class="button">商品を出品</a>
+        <a th:href="@{/my-page}" class="button">マイページ</a>
 
-					<!-- 商品名を見出しとして表示 -->
-					<h3 th:text="${item.name}"></h3>
-					<p class="description"
-					   th:text="${item.description}">
-					</p>
+        <form th:action="@{/logout}" method="post" style="display:inline;">
+            <button type="submit" class="button secondary">ログアウト</button>
+        </form>
+    </div>
 
+    <!-- ========================= -->
+    <!-- 検索フォーム -->
+    <!-- ========================= -->
+    <form th:action="@{/items/search}" method="get" class="filter-form">
 
-					<!-- 価格を通貨風に整形（¥＋カンマ区切り） -->
-					<p class="price" th:text="'¥' + ${#numbers.formatDecimal(item.price, 0,'COMMA', 0, 'POINT')}"></p>
+        <!-- カード名 -->
+        <div>
+            <label>カード名</label>
+            <input type="text" name="cardName" th:value="${param.cardName}">
+        </div>
 
-					<p class="shipping-fee">
-					    送料：
-					    <span th:text="${item.shippingFeeBurden != null ? item.shippingFeeBurden.label : '未設定'}"></span>
-					</p>
-					<!-- 出品ステータス（出品中/売却済）を表示 -->
-					<p class="status" th:text="${item.status}"></p>
-				</a>
-			</div>
+        <!-- レアリティ -->
+        <div>
+            <label>レアリティ</label>
+            <select name="rarity">
+                <option value="">全て</option>
+                <option th:each="r : ${rarities}"
+                        th:value="${r}"
+                        th:text="${r.label}"
+                        th:selected="${param.rarity == r}">
+                </option>
+            </select>
+        </div>
 
-			<!-- 検索結果が 0 件のときにメッセージ表示 -->
-			<div th:if="${#lists.isEmpty(items.content)}">
-				<p>商品が見つかりませんでした。</p>
-			</div>
-		</div>
-	 <!-- ページネーション（前へ/ページ番号/次へ） -->
-		<div class="pagination">
-			<!-- 前ページが存在する場合のみリンク表示 -->
-			<a th:if="${items.hasPrevious()}" th:href="@{/items(page=${items.number - 1},
-			keyword=${param.keyword}, categoryId=${param.categoryId})}">前へ</a>
-			<!-- 0〜(総ページ-1)のシーケンスを生成してページ番号リンクを作成 -->
-			<span th:each="i : ${#numbers.sequence(0, items.totalPages - 1)}">
-				<!-- 現在ページ以外はリンクとして表示 -->
-				<a th:if="${i != items.number}" th:href="@{/items(page=${i},
-				keyword=${param.keyword}, categoryId=${param.categoryId})}" th:text="${i + 1}"></a>
-				<!-- 現在ページは強調表示（リンクではない） -->
-				<span th:if="${i == items.number}" class="current-page" th:text="${i +1}"></span>
-			</span>
-			<!-- 次ページが存在する場合のみリンク表示 -->
-			<a th:if="${items.hasNext()}" th:href="@{/items(page=${items.number + 1},
-			keyword=${param.keyword}, categoryId=${param.categoryId})}">次へ</a>
-		</div>
-	</div>
+        <!-- レギュレーション -->
+        <div>
+            <label>レギュレーション</label>
+            <select name="regulation">
+                <option value="">全て</option>
+                <option th:each="r : ${regulations}"
+                        th:value="${r}"
+                        th:text="${r.label}"
+                        th:selected="${param.regulation == r}">
+                </option>
+            </select>
+        </div>
+
+        <!-- 封入パック -->
+        <div>
+            <label>封入パック</label>
+            <input type="text" name="packName" th:value="${param.packName}">
+        </div>
+
+        <!-- カード状態（★ CardInfo に統一） -->
+        <div>
+            <label>状態</label>
+            <select name="condition">
+                <option value="">全て</option>
+                <option th:each="c : ${conditions}"
+                        th:value="${c}"
+                        th:text="${c.label}"
+                        th:selected="${param.condition == c}">
+                </option>
+            </select>
+        </div>
+
+        <!-- 価格 -->
+        <div>
+            <label>価格</label>
+            <input type="number" name="minPrice" placeholder="最小" th:value="${param.minPrice}">
+            〜
+            <input type="number" name="maxPrice" placeholder="最大" th:value="${param.maxPrice}">
+        </div>
+
+        <!-- 並び替え -->
+        <div>
+            <label>並び替え</label>
+            <select name="sort">
+                <option value="new" th:selected="${param.sort == 'new'}">新着順</option>
+                <option value="priceAsc" th:selected="${param.sort == 'priceAsc'}">価格昇順</option>
+                <option value="priceDesc" th:selected="${param.sort == 'priceDesc'}">価格降順</option>
+            </select>
+        </div>
+
+        <!-- 検索 -->
+        <button type="submit" class="button">検索</button>
+    </form>
+
+    <!-- ========================= -->
+    <!-- 商品一覧 -->
+    <!-- ========================= -->
+    <div class="item-grid">
+
+        <div class="item-card" th:each="item : ${items.content}">
+            <a th:href="@{/items/{id}(id=${item.id})}">
+
+                <!-- 画像 -->
+                <img th:if="${item.imageUrl != null}" th:src="${item.imageUrl}">
+                <img th:if="${item.imageUrl == null}" th:src="@{/images/placeholder.png}">
+
+                <!-- 商品名 -->
+                <h3 th:text="${item.name}"></h3>
+
+                <!-- カード情報 -->
+                <p th:text="'カード名：' + ${item.cardInfo.cardName}"></p>
+                <p th:text="'レアリティ：' + ${item.cardInfo.rarity.label}"></p>
+                <p th:text="'状態：' + ${item.cardInfo.condition.label}"></p>
+                <p th:text="'レギュレーション：' + ${item.cardInfo.regulation.label}"></p>
+                <p th:text="'封入パック：' + ${item.cardInfo.packName}"></p>
+
+                <!-- 価格 -->
+                <p class="price"
+                   th:text="'¥' + ${#numbers.formatDecimal(item.price,0,'COMMA',0,'POINT')}">
+                </p>
+
+                <!-- ステータス -->
+                <p th:text="${item.status}"></p>
+            </a>
+        </div>
+
+        <!-- 検索結果なし -->
+        <div th:if="${items.totalElements == 0}">
+            <p>商品が見つかりませんでした。</p>
+        </div>
+    </div>
+
+    <!-- ========================= -->
+    <!-- ページネーション（★ 検索条件保持） -->
+    <!-- ========================= -->
+    <div class="pagination">
+
+        <a th:if="${items.hasPrevious()}"
+           th:href="@{/items/search(
+                page=${items.number - 1},
+                cardName=${param.cardName},
+                rarity=${param.rarity},
+                regulation=${param.regulation},
+                condition=${param.condition},
+                packName=${param.packName},
+                minPrice=${param.minPrice},
+                maxPrice=${param.maxPrice},
+                sort=${param.sort}
+           )}">
+            前へ
+        </a>
+
+        <span th:each="i : ${#numbers.sequence(0, items.totalPages - 1)}">
+            <a th:if="${i != items.number}"
+               th:href="@{/items/search(
+                    page=${i},
+                    cardName=${param.cardName},
+                    rarity=${param.rarity},
+                    regulation=${param.regulation},
+                    condition=${param.condition},
+                    packName=${param.packName},
+                    minPrice=${param.minPrice},
+                    maxPrice=${param.maxPrice},
+                    sort=${param.sort}
+               )}"
+               th:text="${i + 1}">
+            </a>
+
+            <span th:if="${i == items.number}"
+                  class="current-page"
+                  th:text="${i + 1}">
+            </span>
+        </span>
+
+        <a th:if="${items.hasNext()}"
+           th:href="@{/items/search(
+                page=${items.number + 1},
+                cardName=${param.cardName},
+                rarity=${param.rarity},
+                regulation=${param.regulation},
+                condition=${param.condition},
+                packName=${param.packName},
+                minPrice=${param.minPrice},
+                maxPrice=${param.maxPrice},
+                sort=${param.sort}
+           )}">
+            次へ
+        </a>
+    </div>
+
+</div>
 </body>
-
 </html>

@@ -3,18 +3,23 @@ package com.example.evolon.entity;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
+import com.example.evolon.domain.enums.CardCondition;
+import com.example.evolon.domain.enums.ListingType;
 import com.example.evolon.domain.enums.ShippingDuration;
 import com.example.evolon.domain.enums.ShippingFeeBurden;
 import com.example.evolon.domain.enums.ShippingMethod;
@@ -25,7 +30,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * 商品エンティティ
+ * 商品エンティティ（出品単位）
  */
 @Entity
 @Table(name = "item")
@@ -49,7 +54,7 @@ public class Item {
 	private User seller;
 
 	// =========================
-	// 商品名
+	// 商品名（表示用）
 	// =========================
 	@Column(nullable = false)
 	private String name;
@@ -88,11 +93,25 @@ public class Item {
 	private ShippingRegion shippingRegion;
 
 	// =========================
-	//  発送方法
+	// 発送方法
 	// =========================
 	@Enumerated(EnumType.STRING)
 	@Column(name = "shipping_method", nullable = false)
 	private ShippingMethod shippingMethod;
+
+	// =========================
+	// 出品タイプ（SINGLE / BOX / DECK）
+	// =========================
+	@Enumerated(EnumType.STRING)
+	@Column(name = "listing_type", nullable = false)
+	private ListingType listingType;
+
+	// =========================
+	// カード状態
+	// =========================
+	@Enumerated(EnumType.STRING)
+	@Column(name = "condition", nullable = false)
+	private CardCondition condition;
 
 	// =========================
 	// カテゴリ
@@ -113,25 +132,40 @@ public class Item {
 	private String imageUrl;
 
 	// =========================
+	// カード情報（1対1）
+	// ★ フィールド初期化しない（JPA事故防止）
+	// =========================
+	@OneToOne(mappedBy = "item", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	private CardInfo cardInfo;
+
+	// =========================
 	// 作成日時
 	// =========================
 	@Column(name = "created_at", nullable = false)
 	private LocalDateTime createdAt;
 
 	// =========================
-	// ★ 保存前に自動セット
+	// 保存前処理
 	// =========================
 	@PrePersist
 	public void prePersist() {
 
-		// 作成日時
+		// 作成日時を自動設定
 		if (this.createdAt == null) {
 			this.createdAt = LocalDateTime.now();
 		}
 
-		// 出品ステータス（一覧に出すため必須）
+		// 出品ステータス初期値
 		if (this.status == null) {
 			this.status = "出品中";
 		}
+
+		// CardInfo が未設定なら生成
+		if (this.cardInfo == null) {
+			this.cardInfo = new CardInfo();
+		}
+
+		// 双方向関連を必ずセット
+		this.cardInfo.setItem(this);
 	}
 }
