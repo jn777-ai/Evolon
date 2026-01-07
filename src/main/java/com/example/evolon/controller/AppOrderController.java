@@ -1,37 +1,39 @@
 package com.example.evolon.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.example.evolon.entity.AppOrder;
+import com.example.evolon.entity.Chat;
+import com.example.evolon.entity.OrderStatus;
+import com.example.evolon.entity.ReviewResult;
 import com.example.evolon.entity.User;
 import com.example.evolon.service.AppOrderService;
-import com.example.evolon.service.ItemService;
+import com.example.evolon.service.ChatService;
+import com.example.evolon.service.ReviewService;
 import com.example.evolon.service.UserService;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
 
-/**
- * 注文・決済（Stripe 連携含む）に関する画面制御コントローラー
- */
 @Controller
 @RequestMapping("/orders")
 public class AppOrderController {
 
 	private final AppOrderService appOrderService;
 	private final UserService userService;
-	private final ItemService itemService;
+	private final ChatService chatService;
+	private final ReviewService reviewService;
 
 	@Value("${stripe.public-key}")
 	private String stripePublicKey;
@@ -39,101 +41,212 @@ public class AppOrderController {
 	public AppOrderController(
 			AppOrderService appOrderService,
 			UserService userService,
-			ItemService itemService) {
+			ChatService chatService,
+			ReviewService reviewService) {
 		this.appOrderService = appOrderService;
 		this.userService = userService;
-		this.itemService = itemService;
+		this.chatService = chatService;
+		this.reviewService = reviewService;
 	}
 
-	/** 購入開始 */
-	@PostMapping("/initiate-purchase")
+	/* =====================
+	 * 購入開始
+	 * ===================== */
+	@PostMapping("/initiate")
 	public String initiatePurchase(
 			@AuthenticationPrincipal UserDetails userDetails,
 			@RequestParam("itemId") Long itemId,
-			RedirectAttributes redirectAttributes) {
+			RedirectAttributes ra) {
 
 		User buyer = userService.getUserByEmail(userDetails.getUsername())
-				.orElseThrow(() -> new RuntimeException("Buyer not found"));
+				.orElseThrow(() -> new RuntimeException("User not found"));
 
 		try {
-			PaymentIntent paymentIntent = appOrderService.initiatePurchase(itemId, buyer);
-
-			redirectAttributes.addFlashAttribute(
-					"clientSecret",
-					paymentIntent.getClientSecret());
-			redirectAttributes.addFlashAttribute("itemId", itemId);
-
-			return "redirect:/orders/confirm-payment";
-
-		} catch (IllegalStateException | IllegalArgumentException | StripeException e) {
-			redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+			PaymentIntent pi = appOrderService.initiatePurchase(itemId, buyer);
+			return "redirect:/orders/confirm"
+					+ "?clientSecret=" + pi.getClientSecret()
+					+ "&paymentIntentId=" + pi.getId();
+		} catch (StripeException | IllegalStateException e) {
+			ra.addFlashAttribute("errorMessage", e.getMessage());
 			return "redirect:/items/" + itemId;
 		}
 	}
 
-	/** 決済確認画面 */
-	@GetMapping("/confirm-payment")
+	/* =====================
+	 * Stripe 決済画面
+	 * ===================== */
+	@GetMapping("/confirm")
 	public String confirmPayment(
-			@ModelAttribute("clientSecret") String clientSecret,
-			@ModelAttribute("itemId") Long itemId,
+			@RequestParam String clientSecret,
+			@RequestParam String paymentIntentId,
 			Model model) {
 
-		if (clientSecret == null || itemId == null) {
-			return "redirect:/items";
-		}
-
 		model.addAttribute("clientSecret", clientSecret);
-		model.addAttribute("itemId", itemId);
+		model.addAttribute("paymentIntentId", paymentIntentId);
 		model.addAttribute("stripePublicKey", stripePublicKey);
-
 		return "payment_confirmation";
 	}
 
-	/** 決済完了 */
+	/* =====================
+	 * 決済完了
+	 * ===================== */
 	@GetMapping("/complete-purchase")
 	public String completePurchase(
-			@RequestParam("paymentIntentId") String paymentIntentId,
-			RedirectAttributes redirectAttributes) {
+			@RequestParam("payment_intent") String paymentIntentId,
+			RedirectAttributes ra) {
 
 		try {
 			appOrderService.completePurchase(paymentIntentId);
-			redirectAttributes.addFlashAttribute(
-					"successMessage", "商品を購入しました！");
-
-			return appOrderService.getLatestCompletedOrderId()
-					.map(id -> "redirect:/reviews/new/" + id)
-					.orElse("redirect:/my-page/orders");
-
-		} catch (StripeException | IllegalStateException e) {
-			redirectAttributes.addFlashAttribute(
-					"errorMessage",
-					"決済処理中にエラーが発生しました: " + e.getMessage());
+			ra.addFlashAttribute("successMessage", "商品を購入しました");
+			return "redirect:/my-page/orders";
+		} catch (Exception e) {
+			ra.addFlashAttribute("errorMessage", e.getMessage());
 			return "redirect:/items";
 		}
 	}
 
-	/** Webhook */
-	@PostMapping("/stripe-webhook")
-	public void handleStripeWebhook(
-			@RequestBody String payload,
-			@RequestHeader("Stripe-Signature") String sigHeader) {
-		System.out.println("Received Stripe Webhook: " + payload);
-	}
-
-	/** 発送処理 */
-	@PostMapping("/{id}/ship")
-	public String shipOrder(
+	/* =====================
+	 * 取引詳細
+	 * ===================== */
+	@GetMapping("/{id:\\d+}")
+	public String orderDetail(
+			@AuthenticationPrincipal UserDetails userDetails,
 			@PathVariable Long id,
-			RedirectAttributes redirectAttributes) {
+			Model model,
+			RedirectAttributes ra) {
 
-		try {
-			appOrderService.markOrderAsShipped(id);
-			redirectAttributes.addFlashAttribute(
-					"successMessage", "商品を発送済みにしました。");
-		} catch (IllegalArgumentException e) {
-			redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+		User loginUser = userService.getUserByEmail(userDetails.getUsername())
+				.orElseThrow(() -> new RuntimeException("User not found"));
+
+		AppOrder order = appOrderService.getOrderById(id)
+				.orElseThrow(() -> new RuntimeException("注文が見つかりません"));
+
+		boolean isBuyer = order.getBuyer().getId().equals(loginUser.getId());
+		boolean isSeller = order.getItem().getSeller().getId().equals(loginUser.getId());
+
+		if (!isBuyer && !isSeller) {
+			ra.addFlashAttribute("errorMessage", "権限がありません");
+			return "redirect:/my-page";
 		}
 
-		return "redirect:/my-page/sales";
+		List<Chat> chats = chatService.getChatMessagesByItem(order.getItem().getId());
+
+		// ✅ 評価済み判定は ReviewService に統一
+		boolean buyerReviewed = reviewService.hasReviewed(id, order.getBuyer());
+		boolean sellerReviewed = reviewService.hasReviewed(id, order.getItem().getSeller());
+
+		OrderStatus st = order.getOrderStatus();
+
+		model.addAttribute("order", order);
+		model.addAttribute("chats", chats);
+		model.addAttribute("isBuyer", isBuyer);
+		model.addAttribute("isSeller", isSeller);
+
+		model.addAttribute("canShip", isSeller && st == OrderStatus.PURCHASED);
+		model.addAttribute("canDeliver", isBuyer && st == OrderStatus.SHIPPED);
+
+		model.addAttribute("canBuyerReview",
+				isBuyer && st == OrderStatus.DELIVERED && !buyerReviewed);
+
+		model.addAttribute("canSellerReview",
+				isSeller && st == OrderStatus.DELIVERED && buyerReviewed && !sellerReviewed);
+
+		model.addAttribute("buyerReviewed", buyerReviewed);
+		model.addAttribute("sellerReviewed", sellerReviewed);
+
+		return "order_detail";
+	}
+
+	/* =====================
+	 * チャット送信
+	 * ===================== */
+	@PostMapping("/{id}/chat")
+	public String sendChat(
+			@AuthenticationPrincipal UserDetails userDetails,
+			@PathVariable Long id,
+			@RequestParam String message,
+			RedirectAttributes ra) {
+
+		if (message == null || message.trim().isEmpty()) {
+			ra.addFlashAttribute("errorMessage", "メッセージを入力してください");
+			return "redirect:/orders/" + id;
+		}
+
+		User sender = userService.getUserByEmail(userDetails.getUsername())
+				.orElseThrow(() -> new RuntimeException("User not found"));
+
+		AppOrder order = appOrderService.getOrderById(id)
+				.orElseThrow(() -> new RuntimeException("注文が見つかりません"));
+
+		boolean allowed = order.getBuyer().getId().equals(sender.getId())
+				|| order.getItem().getSeller().getId().equals(sender.getId());
+
+		if (!allowed) {
+			ra.addFlashAttribute("errorMessage", "送信権限がありません");
+			return "redirect:/my-page";
+		}
+
+		chatService.sendMessage(order.getItem().getId(), sender, message.trim());
+		return "redirect:/orders/" + id;
+	}
+
+	/* =====================
+	 * 発送
+	 * ===================== */
+	@PostMapping("/{id}/ship")
+	public String ship(
+			@AuthenticationPrincipal UserDetails userDetails,
+			@PathVariable Long id,
+			RedirectAttributes ra) {
+
+		try {
+			appOrderService.markOrderAsShipped(id, userDetails.getUsername());
+			ra.addFlashAttribute("successMessage", "発送しました");
+		} catch (Exception e) {
+			ra.addFlashAttribute("errorMessage", e.getMessage());
+		}
+		return "redirect:/orders/" + id;
+	}
+
+	/* =====================
+	 * 到着確認
+	 * ===================== */
+	@PostMapping("/{id}/deliver")
+	public String deliver(
+			@AuthenticationPrincipal UserDetails userDetails,
+			@PathVariable Long id,
+			RedirectAttributes ra) {
+
+		try {
+			appOrderService.markOrderAsDelivered(id, userDetails.getUsername());
+			ra.addFlashAttribute("successMessage", "到着確認しました");
+		} catch (Exception e) {
+			ra.addFlashAttribute("errorMessage", e.getMessage());
+		}
+		return "redirect:/orders/" + id;
+	}
+
+	/* =====================
+	 * 評価（購入者・出品者共通）
+	 * ===================== */
+	@PostMapping("/{id}/review")
+	public String review(
+			@AuthenticationPrincipal UserDetails userDetails,
+			@PathVariable Long id,
+			@RequestParam ReviewResult result,
+			@RequestParam String comment,
+			RedirectAttributes ra) {
+
+		try {
+			appOrderService.submitReview(
+					id,
+					userDetails.getUsername(),
+					result,
+					comment);
+			ra.addFlashAttribute("successMessage", "評価を送信しました");
+		} catch (Exception e) {
+			ra.addFlashAttribute("errorMessage", e.getMessage());
+		}
+		return "redirect:/orders/" + id;
 	}
 }

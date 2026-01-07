@@ -1,82 +1,132 @@
 package com.example.evolon.service;
 
-import java.util.List;
-import java.util.OptionalDouble;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.evolon.entity.AppOrder;
+import com.example.evolon.entity.OrderStatus;
 import com.example.evolon.entity.Review;
+import com.example.evolon.entity.ReviewResult;
 import com.example.evolon.entity.User;
-import com.example.evolon.repository.AppOrderRepository;
 import com.example.evolon.repository.ReviewRepository;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class ReviewService {
 
 	private final ReviewRepository reviewRepository;
-	private final AppOrderRepository appOrderRepository;
 
-	public ReviewService(ReviewRepository reviewRepository,
-			AppOrderRepository appOrderRepository) {
-		this.reviewRepository = reviewRepository;
-		this.appOrderRepository = appOrderRepository;
+	/* =====================
+	 * 集計系
+	 * ===================== */
+
+	public long countGoodForUser(User user) {
+		return reviewRepository.countByRevieweeAndResult(user, ReviewResult.GOOD);
 	}
 
-	/**
-	 * レビュー投稿（買い手のみ、1注文1レビュー）
-	 */
+	public long countBadForUser(User user) {
+		return reviewRepository.countByRevieweeAndResult(user, ReviewResult.BAD);
+	}
+
+	/* =====================
+	 * レビュー済み判定
+	 * ===================== */
+
+	public boolean hasReviewed(Long orderId, User reviewer) {
+		return reviewRepository.existsByOrder_IdAndReviewer(orderId, reviewer);
+	}
+
+	/* =====================
+	 * レビュー作成（共通）
+	 * ===================== */
 	@Transactional
-	public Review submitReview(Long orderId, User reviewer, int rating, String comment) {
+	public Review createReview(
+			AppOrder order,
+			User reviewer,
+			ReviewResult result,
+			String comment) {
 
-		// 注文取得（存在しなければ例外）
-		AppOrder order = appOrderRepository.findById(orderId)
-				.orElseThrow(() -> new IllegalArgumentException("Order not found."));
+		validateReviewInput(order, reviewer, result, comment);
 
-		// 買い手本人かチェック
-		if (!order.getBuyer().getId().equals(reviewer.getId())) {
-			throw new IllegalStateException("Only the buyer can review this order.");
+		// 二重レビュー防止
+		if (hasReviewed(order.getId(), reviewer)) {
+			throw new IllegalStateException("すでに評価済みです");
 		}
 
-		// 既にレビュー済みかチェック
-		if (reviewRepository.findByOrderId(orderId).isPresent()) {
-			throw new IllegalStateException("This order has already been reviewed.");
+		boolean isBuyer = reviewer.getId().equals(order.getBuyer().getId());
+		boolean isSeller = reviewer.getId().equals(order.getItem().getSeller().getId());
+
+		if (!isBuyer && !isSeller) {
+			throw new IllegalStateException("この取引を評価する権限がありません");
 		}
 
-		// 新規レビュー作成
+		// 到着確認後のみ評価可
+		if (order.getOrderStatus() != OrderStatus.DELIVERED
+				&& order.getOrderStatus() != OrderStatus.COMPLETED) {
+			throw new IllegalStateException("到着確認後に評価できます");
+		}
+
+		// 出品者は購入者評価が先
+		if (isSeller) {
+			boolean buyerReviewed = hasReviewed(order.getId(), order.getBuyer());
+			if (!buyerReviewed) {
+				throw new IllegalStateException("購入者の評価完了後に出品者は評価できます");
+			}
+		}
+
+		User reviewee = isBuyer
+				? order.getItem().getSeller()
+				: order.getBuyer();
+
 		Review review = new Review();
 		review.setOrder(order);
 		review.setReviewer(reviewer);
+		review.setReviewee(reviewee);
+
+		// 旧互換（DB制約対応）
 		review.setSeller(order.getItem().getSeller());
 		review.setItem(order.getItem());
-		review.setRating(rating);
-		review.setComment(comment);
+		review.setRating(result == ReviewResult.GOOD ? 5 : 1);
 
-		// 保存して返却
+		review.setResult(result);
+		review.setComment(comment.trim());
+
 		return reviewRepository.save(review);
 	}
 
-	/**
-	 * 出品者へのレビュー一覧取得
-	 */
-	public List<Review> getReviewsBySeller(User seller) {
-		return reviewRepository.findBySeller(seller);
+	/* =====================
+	 * private
+	 * ===================== */
+
+	private void validateReviewInput(
+			AppOrder order,
+			User reviewer,
+			ReviewResult result,
+			String comment) {
+
+		if (order == null || order.getId() == null) {
+			throw new IllegalArgumentException("order が不正です");
+		}
+		if (reviewer == null) {
+			throw new IllegalArgumentException("reviewer が不正です");
+		}
+		if (result == null) {
+			throw new IllegalArgumentException("result が不正です");
+		}
+		if (comment == null || comment.trim().isEmpty()) {
+			throw new IllegalArgumentException("comment は必須です");
+		}
 	}
 
-	/**
-	 * 出品者の平均評価
-	 */
-	public OptionalDouble getAverageRatingForSeller(User seller) {
-		return reviewRepository.findBySeller(seller).stream()
-				.mapToInt(Review::getRating)
-				.average();
+	// 旧Controller互換（seller用）
+	public long countGoodForSeller(User seller) {
+		return countGoodForUser(seller);
 	}
 
-	/**
-	 * レビュワー自身のレビュー一覧
-	 */
-	public List<Review> getReviewsByReviewer(User reviewer) {
-		return reviewRepository.findByReviewer(reviewer);
+	public long countBadForSeller(User seller) {
+		return countBadForUser(seller);
 	}
+
 }

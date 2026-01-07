@@ -4,62 +4,63 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * レビュー情報を表す JPA エンティティ
- */
 @Entity
-@Table(name = "review")
+@Table(name = "review", uniqueConstraints = @UniqueConstraint(columnNames = { "order_id", "reviewer_id" }))
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 public class Review {
 
-	/** 主キー */
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	/** 注文に対するレビュー（1対1） */
-	@OneToOne
-	@JoinColumn(name = "order_id", nullable = false, unique = true)
+	// 注文
+	@ManyToOne
+	@JoinColumn(name = "order_id", nullable = false)
 	private AppOrder order;
 
-	/** レビュアー（多対一） */
+	// レビューを書く人
 	@ManyToOne
 	@JoinColumn(name = "reviewer_id", nullable = false)
 	private User reviewer;
 
-	/** 出品者（多対一） */
+	// レビューされる人
+	@ManyToOne
+	@JoinColumn(name = "reviewee_id", nullable = false)
+	private User reviewee;
+
+	// 旧互換（DBのため残す）
 	@ManyToOne
 	@JoinColumn(name = "seller_id", nullable = false)
 	private User seller;
 
-	/** 商品（多対一） */
 	@ManyToOne
 	@JoinColumn(name = "item_id", nullable = false)
 	private Item item;
 
-	/** レビュー点数（1〜5） */
-	@Column(nullable = false)
+	@Enumerated(EnumType.STRING)
+	@Column(name = "result", nullable = false, length = 10)
+	private ReviewResult result;
+
+	@Column(name = "rating", nullable = false)
 	private Integer rating;
 
-	/** レビュー本文（長文対応） */
-	@Column(columnDefinition = "TEXT")
+	@Column(name = "comment", nullable = false)
 	private String comment;
 
-	/** レビュー作成日時 */
-	@Column(name = "created_at", nullable = false)
-	private LocalDateTime createdAt = LocalDateTime.now();
+	@Column(name = "created_at", insertable = false, updatable = false)
+	private LocalDateTime createdAt;
 }

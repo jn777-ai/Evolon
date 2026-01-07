@@ -48,61 +48,60 @@
             <span th:text="${item.category != null ? item.category.name : '未分類'}"></span>
         </p>
 
-        <!-- 発送情報 -->
-        <p>発送目安：
-            <span th:text="${item.shippingDuration != null ? item.shippingDuration.label : '未設定'}"></span>
-        </p>
-        <p>送料負担：
-            <span th:text="${item.shippingFeeBurden != null ? item.shippingFeeBurden.label : '未設定'}"></span>
-        </p>
-        <p>発送地域：
-            <span th:text="${item.shippingRegion != null ? item.shippingRegion.label : '未設定'}"></span>
-        </p>
-        <p>発送方法：
-            <span th:text="${item.shippingMethod != null ? item.shippingMethod.label : '未設定'}"></span>
-        </p>
-
         <!-- 出品者 -->
         <p>
             出品者：
             <span th:text="${item.seller.name}"></span>
             <span th:if="${sellerAverageRating}">
-                （平均評価：<span th:text="${sellerAverageRating}"></span>）
+                （平均評価：
+                <span th:text="${sellerAverageRating}"></span>）
             </span>
         </p>
 
-        <!-- ステータス -->
-        <p>ステータス：<span th:text="${item.status}"></span></p>
+        <!-- ステータス（★修正） -->
+        <p>
+            ステータス：
+            <span th:text="${item.status.label}"></span>
+        </p>
+
     </div>
 
     <!-- ボタン群 -->
     <div class="button-group">
 
-        <!-- 購入 -->
+        <!-- 購入ボタン（★修正） -->
         <form sec:authorize="isAuthenticated()"
-              th:if="${item.status != null and item.status.trim() == '出品中' and !isOwner}"
-              th:action="@{/orders/initiate-purchase}"
+              th:if="${item.status.name() == 'SELLING' and !isOwner}"
+              th:action="@{/orders/initiate}"
               method="post"
               onsubmit="return confirm('本当にこの商品を購入しますか？');">
+
             <input type="hidden" name="itemId" th:value="${item.id}">
+
+            <input type="hidden"
+                   th:name="${_csrf.parameterName}"
+                   th:value="${_csrf.token}">
+
             <button type="submit" class="button">購入する</button>
         </form>
 
         <!-- チャット -->
-        <a th:href="@{/chat/{itemId}(itemId=${item.id})}" class="button secondary">
+        <a th:href="@{/chat/{itemId}(itemId=${item.id})}"
+           class="button secondary">
             チャットで質問 / 交渉
         </a>
 
         <!-- お気に入り -->
-        <div sec:authorize="isAuthenticated()" th:if="!(isOwner ?: false)">
-            <form th:if="${isFavorited ?: false}"
+        <div sec:authorize="isAuthenticated()" th:if="${!isOwner}">
+
+            <form th:if="${isFavorited}"
                   th:action="@{/items/{id}/unfavorite(id=${item.id})}"
                   method="post"
                   style="display:inline;">
                 <button type="submit" class="button danger">お気に入り解除</button>
             </form>
 
-            <form th:unless="${isFavorited ?: false}"
+            <form th:unless="${isFavorited}"
                   th:action="@{/items/{id}/favorite(id=${item.id})}"
                   method="post"
                   style="display:inline;">
@@ -115,7 +114,14 @@
     <h2>チャット</h2>
 
     <div class="chat-box">
-        <div th:each="chat : ${chats}" class="chat-message">
+
+		<div th:each="chat : ${chats}"
+		     class="chat-message"
+		     th:classappend="${isOwner 
+		        or (chat.sender != null and chat.sender.email != null and chat.sender.email != #authentication.name)
+		        ? 'other-message' : 'my-message'}">
+
+
             <span class="sender-name" th:text="${chat.sender.name}"></span>
             <span class="message-time"
                   th:text="${#temporals.format(chat.createdAt,'yyyy/MM/dd HH:mm')}"></span>
@@ -132,13 +138,18 @@
           th:action="@{/chat/{itemId}(itemId=${item.id})}"
           method="post"
           class="chat-form">
-        <textarea name="message" placeholder="メッセージを入力してください" required></textarea>
+
+        <textarea name="message"
+                  placeholder="メッセージを入力してください"
+                  required></textarea>
         <button type="submit">送信</button>
     </form>
 
     <!-- 戻る -->
     <div class="button-group">
-        <a th:href="@{/items}" class="button secondary">商品一覧に戻る</a>
+        <a th:href="@{/items}" class="button secondary">
+            商品一覧に戻る
+        </a>
     </div>
 
 </div>

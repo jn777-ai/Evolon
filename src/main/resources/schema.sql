@@ -1,17 +1,18 @@
--- CLEAN DROP (依存順にテーブル削除)
+-- ========== CLEAN DROP (依存順) ==========
 DROP TABLE IF EXISTS chat CASCADE;
 DROP TABLE IF EXISTS favorite_item CASCADE;
 DROP TABLE IF EXISTS review CASCADE;
 DROP TABLE IF EXISTS app_order CASCADE;
-DROP TABLE IF EXISTS card_info CASCADE;
 DROP TABLE IF EXISTS item CASCADE;
 DROP TABLE IF EXISTS category CASCADE;
 DROP TABLE IF EXISTS review_stats CASCADE;
+DROP TABLE IF EXISTS card_info CASCADE;
 DROP TABLE IF EXISTS user_complaint CASCADE;
-DROP TABLE IF EXISTS users CASCADE;
 DROP TABLE IF EXISTS inquiry CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
 
--- ユーザー情報テーブル
+-- ========== CREATE ==========
+-- ユーザー情報
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
@@ -24,28 +25,24 @@ CREATE TABLE users (
     ban_reason TEXT,
     banned_at TIMESTAMP,
     banned_by_admin_id INT,
-    -- パスワード再設定用トークン
+    -- パスワード再設定用
     reset_token VARCHAR(255),
     reset_token_expires_at TIMESTAMP
 );
 
--- カテゴリテーブル
+-- カテゴリ
 CREATE TABLE category (
     id SERIAL PRIMARY KEY,
     name VARCHAR(50) NOT NULL UNIQUE
 );
 
--- 商品テーブル
+-- 商品
 CREATE TABLE item (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULL,
     name VARCHAR(255) NOT NULL,
     description TEXT,
     price NUMERIC(10,2) NOT NULL,
-    shipping_duration VARCHAR(50) NOT NULL,
-    shipping_fee_burden VARCHAR(50) NOT NULL,
-    shipping_region VARCHAR(50) NOT NULL DEFAULT '未設定',
-    shipping_method VARCHAR(50) NOT NULL DEFAULT 'OTHER',
     category_id INT,
     status VARCHAR(20) DEFAULT '出品中',
     listing_type VARCHAR(50),
@@ -59,20 +56,33 @@ CREATE TABLE item (
     FOREIGN KEY (category_id) REFERENCES category(id)
 );
 
--- 注文テーブル
+-- 注文
 CREATE TABLE app_order (
     id SERIAL PRIMARY KEY,
     item_id INT NOT NULL,
     buyer_id INT NOT NULL,
     price NUMERIC(10,2) NOT NULL,
+
+    -- 表示用（互換）
     status VARCHAR(20) DEFAULT '購入済',
+
+    -- 正式ステータス
+    order_status VARCHAR(30) NOT NULL DEFAULT 'PAYMENT_PENDING',
+
     payment_intent_id VARCHAR(128),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    -- 状態遷移用
+    cancelled_at TIMESTAMP,
+    cancelled_by VARCHAR(20),
+    shipped_at TIMESTAMP,
+    delivered_at TIMESTAMP,
+
     FOREIGN KEY (item_id) REFERENCES item(id),
     FOREIGN KEY (buyer_id) REFERENCES users(id)
 );
 
--- チャットテーブル
+-- チャット
 CREATE TABLE chat (
     id SERIAL PRIMARY KEY,
     item_id INT NOT NULL,
@@ -85,7 +95,7 @@ CREATE TABLE chat (
     FOREIGN KEY (sender_id) REFERENCES users(id)
 );
 
--- お気に入りテーブル
+-- お気に入り
 CREATE TABLE favorite_item (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULL,
@@ -96,23 +106,36 @@ CREATE TABLE favorite_item (
     FOREIGN KEY (item_id) REFERENCES item(id)
 );
 
--- レビューテーブル
+-- レビュー（購入者→出品者、出品者→購入者の2件を許可）
 CREATE TABLE review (
     id SERIAL PRIMARY KEY,
-    order_id INT NOT NULL UNIQUE,
+
+    order_id INT NOT NULL,
     reviewer_id INT NOT NULL,
+    reviewee_id INT NOT NULL,     -- 評価される人
+
+    -- 旧互換（残す）
     seller_id INT NOT NULL,
     item_id INT NOT NULL,
     rating INT NOT NULL CHECK (rating BETWEEN 1 AND 5),
+
+    -- 新
+    result VARCHAR(10) NOT NULL CHECK (result IN ('GOOD','BAD')),
+
     comment TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
     FOREIGN KEY (order_id) REFERENCES app_order(id),
     FOREIGN KEY (reviewer_id) REFERENCES users(id),
+    FOREIGN KEY (reviewee_id) REFERENCES users(id),
     FOREIGN KEY (seller_id) REFERENCES users(id),
-    FOREIGN KEY (item_id) REFERENCES item(id)
+    FOREIGN KEY (item_id) REFERENCES item(id),
+
+    -- 1注文×同一レビュワーは1回まで（購入者レビューと出品者レビューを両方許可）
+    UNIQUE (order_id, reviewer_id)
 );
 
--- レビュー統計テーブル
+-- レビュー統計
 CREATE TABLE review_stats (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULL,
@@ -122,23 +145,19 @@ CREATE TABLE review_stats (
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
--- カード情報テーブル
+-- カード情報
 CREATE TABLE card_info (
     id SERIAL PRIMARY KEY,
     item_id INT NOT NULL,
-    card_name VARCHAR(255) NOT NULL,    
-    pack_name VARCHAR(255),              
-    pack VARCHAR(255),                  
-    rarity VARCHAR(50),             
-    regulation VARCHAR(50),          
-    -- カード状態 (MINT, NEAR_MINT, USED 等)
-    condition VARCHAR(50) NOT NULL DEFAULT 'MINT',
+    pack VARCHAR(255),
+    rarity VARCHAR(50),
+    regulation VARCHAR(50),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (item_id) REFERENCES item(id)
 );
 
--- 通報テーブル
+-- 通報
 CREATE TABLE user_complaint (
     id SERIAL PRIMARY KEY,
     reported_user_id INT NOT NULL,
@@ -149,7 +168,7 @@ CREATE TABLE user_complaint (
     FOREIGN KEY (reporter_user_id) REFERENCES users(id)
 );
 
--- 問い合わせテーブル
+-- 問い合わせ
 CREATE TABLE inquiry (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULL,
@@ -162,19 +181,26 @@ CREATE TABLE inquiry (
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
--- INDEX 作成
+-- ========== INDEX ==========
 CREATE INDEX idx_users_banned ON users(banned);
 CREATE INDEX idx_users_banned_by ON users(banned_by_admin_id);
+
 CREATE INDEX idx_item_user_id ON item(user_id);
 CREATE INDEX idx_item_category_id ON item(category_id);
+
 CREATE INDEX idx_order_item_id ON app_order(item_id);
 CREATE INDEX idx_order_buyer_id ON app_order(buyer_id);
 CREATE UNIQUE INDEX ux_order_pi ON app_order(payment_intent_id);
+
 CREATE INDEX idx_chat_item_id ON chat(item_id);
 CREATE INDEX idx_chat_sender_id ON chat(sender_id);
+
 CREATE INDEX idx_fav_user_id ON favorite_item(user_id);
 CREATE INDEX idx_fav_item_id ON favorite_item(item_id);
+
+-- review: order_id / reviewee_id はよく使う
 CREATE INDEX idx_review_order_id ON review(order_id);
+CREATE INDEX idx_review_reviewee_id ON review(reviewee_id);
+
 CREATE INDEX idx_uc_reported ON user_complaint(reported_user_id);
 CREATE INDEX idx_uc_reporter ON user_complaint(reporter_user_id);
-CREATE INDEX idx_item_shipping_region ON item(shipping_region);
