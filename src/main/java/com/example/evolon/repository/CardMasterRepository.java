@@ -13,4 +13,6 @@ public interface CardMasterRepository extends JpaRepository<CardMaster, Long> {
 	Optional<CardMaster> findBySetCodeAndCardNumber(
 			String setCode,
 			String cardNumber);
+
+	boolean existsBySetCodeAndCardNumber(String setCode, String cardNumber);
 }

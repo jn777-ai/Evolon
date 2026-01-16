@@ -10,8 +10,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
+import com.example.evolon.domain.enums.PrintedRegulation;
 import com.example.evolon.domain.enums.Rarity;
-import com.example.evolon.domain.enums.Regulation;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "card_master", uniqueConstraints = @UniqueConstraint(columnNames = { "set_code", "card_number" }))
 @Data
-@NoArgsConstructor // JPA用デフォルトコンストラクタ
+@NoArgsConstructor
 public class CardMaster {
 
 	@Id
@@ -42,17 +42,23 @@ public class CardMaster {
 	private String packName;
 
 	@Enumerated(EnumType.STRING)
-	private Regulation regulation;
+	@Column(nullable = false)
+	private PrintedRegulation printedRegulation;
 
-	// 任意のコンストラクタ
-	public CardMaster(Long id, String setCode, String cardNumber, String cardName,
-			Rarity rarity, String packName, Regulation regulation) {
+	public CardMaster(
+			Long id,
+			String setCode,
+			String cardNumber,
+			String cardName,
+			Rarity rarity,
+			String packName,
+			PrintedRegulation printedRegulation) {
 		this.id = id;
 		this.setCode = setCode;
 		this.cardNumber = cardNumber;
 		this.cardName = cardName;
 		this.rarity = rarity;
 		this.packName = packName;
-		this.regulation = regulation;
+		this.printedRegulation = printedRegulation;
 	}
 }
