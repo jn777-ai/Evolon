@@ -4,6 +4,16 @@
 /* =====================
    Default
 ===================== */
+.logo {
+  text-align: center;
+  margin-bottom: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+
 .container {
   max-width: 1000px;
   margin: 24px auto;
@@ -104,7 +114,7 @@
 
 .login-page h1 {
   text-align: center;
-  margin-bottom: 8px;
+  margin-bottom: 32px;
 }
 
 .login-page h2 {
@@ -206,4 +216,333 @@
   line-height: 44px;
   text-decoration: none;
 }
+
+/* =====================
+   Admin Dashboard
+===================== */
+
+.admin-page h1 {
+  margin-bottom: 8px;
+}
+
+.admin-page .container {
+  padding: 0 8px; 
+}
+
+
+.admin-page p {
+  margin-top: 0;
+  margin-bottom: 16px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* nav buttons */
+.main-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 16px 0 24px;
+}
+
+/* buttons (base) */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  text-decoration: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+
+  background: #4f46e5;
+  color: #fff;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.button:hover {
+  opacity: 0.92;
+  transform: translateY(-1px);
+}
+
+.button:active {
+  transform: translateY(0px);
+}
+
+/* secondary button */
+.button.secondary {
+  background: #fff;
+  color: #111827;
+  border-color: #e5e7eb;
+}
+
+.button.secondary:hover {
+  opacity: 1;
+  background: #f9fafb;
+}
+
+/* section heading */
+.admin-section-title {
+  margin: 18px 0 10px;
+  font-size: 16px;
+  color: #111827;
+}
+
+/* table */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.05);
+  margin-bottom: 22px;
+}
+
+thead th {
+  background: #f9fafb;
+  color: #374151;
+  font-size: 13px;
+  text-align: left;
+  padding: 12px 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+tbody td {
+  padding: 12px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 14px;
+  color: #111827;
+}
+
+tbody tr:hover {
+  background: #fafafa;
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* empty row */
+.table-empty {
+  color: #6b7280;
+  text-align: center;
+}
+
+/* =====================
+   Admin Detail Page
+===================== */
+
+.page-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 16px 0 14px;
+}
+
+.page-title {
+  margin: 0 0 6px;
+}
+
+.page-sub {
+  margin: 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.page-actions {
+  gap: 10px;
+}
+
+/* detail card */
+.detail-card {
+  padding: 14px 16px 18px;
+}
+
+.detail-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.detail-row {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.detail-row--full {
+  grid-template-columns: 140px 1fr;
+}
+
+.detail-label {
+  color: #6b7280;
+  font-size: 13px;
+  padding-top: 2px;
+}
+
+.detail-value {
+  color: #111827;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.detail-value--box {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px;
+  white-space: pre-wrap; /* 改行を保持 */
+}
+
+.detail-empty {
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+/* divider */
+.divider {
+  border: none;
+  border-top: 1px solid #eef2f7;
+  margin: 16px 0;
+}
+
+/* form */
+.section-title {
+  margin: 0 0 10px;
+  font-size: 15px;
+  color: #111827;
+}
+
+.form-block {
+  margin-top: 4px;
+}
+
+.form {
+  display: grid;
+  gap: 10px;
+}
+
+.textarea {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 14px;
+  line-height: 1.7;
+  resize: vertical;
+  background: #fff;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: #4f46e5;
+}
+
+/* actions */
+.form-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* danger button */
+.button.danger {
+  background: #ef4444;
+  color: #fff;
+}
+
+.button.danger:hover {
+  opacity: 0.92;
+}
+
+/* =====================
+   Admin Header Layout
+===================== */
+
+.admin-header {
+  display: flex;
+  justify-content: space-between; 
+  align-items: center;
+  gap: 16px;
+}
+
+.admin-header_left {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.admin-header_right {
+  display: flex;
+  align-items: center;
+}
+
+
+/* =====================
+   Admin List Page (Inquiries)
+===================== */
+
+.filters {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 10px 0 14px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #111827;
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.pill:hover {
+  background: #f9fafb;
+}
+
+.table-wrap {
+  padding: 10px;
+}
+
+/* narrow/align cols */
+.col-narrow { width: 70px; }
+.col-right { text-align: right; }
+.col-actions { width: 110px; }
+
+.button.small {
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+/* truncate subject */
+.truncate {
+  max-width: 340px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.page-actions--bottom {
+  margin: 24px 0 40px;
+  display: flex;
+  justify-content: flex-start;
+}
+
+
 

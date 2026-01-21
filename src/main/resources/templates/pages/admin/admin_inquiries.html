@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ja"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>問い合わせ一覧 - Evolon</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+
+<body class="admin-page">
+<div class="container">
+
+  <!-- ===== ページヘッダ ===== -->
+  <div class="page-head">
+    <div>
+      <h1 class="page-title">問い合わせ一覧</h1>
+      <p class="page-sub">問い合わせの確認・返信・対応状況の管理ができます。</p>
+    </div>
+  </div> 
+
+  <!-- ===== フィルタ ===== -->
+  <div class="filters">
+    <a th:href="@{/admin/inquiries}" class="pill">全件表示</a>
+    <a th:href="@{/admin/inquiries(unresponded=true)}" class="pill">未対応のみ</a>
+  </div>
+
+  <!-- ===== 一覧テーブル ===== -->
+  <section class="card">
+    <div class="table-wrap">
+      <table>
+        <thead>
+        <tr>
+          <th class="col-narrow">ID</th>
+          <th>ユーザー</th>
+          <th>件名</th>
+          <th>ステータス</th>
+          <th class="col-right">作成日</th>
+          <th class="col-actions">操作</th>
+        </tr>
+        </thead>
+
+        <tbody th:if="${#lists.isEmpty(inquiries)}">
+        <tr>
+          <td colspan="6" class="table-empty">問い合わせがありません。</td>
+        </tr>
+        </tbody>
+
+        <tbody th:unless="${#lists.isEmpty(inquiries)}">
+        <tr th:each="inq : ${inquiries}">
+          <td th:text="${inq.id}">1</td>
+          <td th:text="${inq.user.name}">ユーザー</td>
+          <td class="truncate" th:text="${inq.subject}">件名</td>
+          <td>
+            <span class="badge badge--muted"
+                  th:classappend="${inq.status} == 'OPEN' ? ' badge--ok'
+                                 : (${inq.status} == 'CLOSED' ? ' badge--muted' : '')"
+                  th:text="${inq.status}">OPEN</span>
+          </td>
+          <td class="col-right"
+              th:text="${#temporals.format(inq.createdAt, 'yyyy/MM/dd HH:mm')}">
+            2026/01/21 12:00
+          </td>
+          <td class="col-actions">
+            <a th:href="@{/admin/inquiries/{id}(id=${inq.id})}"
+               class="button small secondary">詳細</a>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===== ページ下部アクション ===== -->
+  <div class="page-actions page-actions--bottom">
+    <a th:href="@{/admin/dashboard}" class="button secondary">
+      ダッシュボードに戻る
+    </a>
+  </div>
+
+</div>
+</body>

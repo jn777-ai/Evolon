@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ja"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>管理者ダッシュボード - Evolon</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+
+<body class="admin-page">
+<div class="container">
+
+  <!-- Header -->
+  <header class="admin-header">
+    <div class="admin-header__left">
+      <div class="logo-wrap">
+      </div>
+      <h1 class="admin-title">管理者ダッシュボード</h1>
+      <p class="admin-welcome">
+        ようこそ、<span class="admin-user" sec:authentication="name"></span> さん（管理者）
+      </p>
+    </div>
+
+    <div class="admin-header__right">
+      <form th:action="@{/logout}" method="post">
+        <button type="submit" class="button secondary">ログアウト</button>
+      </form>
+    </div>
+  </header>
+
+  <!-- Nav -->
+  <nav class="main-nav" aria-label="管理メニュー">
+    <a th:href="@{/admin/items}" class="button">商品管理</a>
+    <a th:href="@{/admin/users}" class="button">ユーザー管理</a>
+    <a th:href="@{/admin/inquiries}" class="button">問い合わせ管理</a>
+    <a th:href="@{/admin/statistics}" class="button">統計画面</a>
+  </nav>
+
+  <!-- Content -->
+  <main class="admin-grid">
+
+    <!-- Recent Items -->
+    <section class="card">
+      <div class="card__head">
+        <h2 class="admin-section-title">最近の出品</h2>
+        <a th:href="@{/admin/items}" class="link">すべて見る</a>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+          <tr>
+            <th>商品名</th>
+            <th>出品者</th>
+            <th class="col-right">価格</th>
+            <th>ステータス</th>
+          </tr>
+          </thead>
+
+          <tbody th:if="${#lists.isEmpty(recentItems)}">
+          <tr>
+            <td colspan="4" class="table-empty">最近の出品はありません。</td>
+          </tr>
+          </tbody>
+
+          <tbody th:unless="${#lists.isEmpty(recentItems)}">
+          <tr th:each="item : ${recentItems}">
+            <td class="truncate" th:text="${item.name}">商品名</td>
+            <td th:text="${item.seller.name}">出品者</td>
+            <td class="col-right"
+                th:text="'¥' + ${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT')}">¥0</td>
+            <td>
+              <!-- status badge (文字が enum のままでもOK) -->
+              <span class="badge"
+                    th:classappend="${item.status} == 'SELLING' ? ' badge--ok'
+                                   : (${item.status} == 'SOLD' ? ' badge--muted'
+                                   : (${item.status} == 'SUSPENDED' ? ' badge--danger' : ''))"
+                    th:text="${item.status}">STATUS</span>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Recent Orders -->
+    <section class="card">
+      <div class="card__head">
+        <h2 class="admin-section-title">最近の注文</h2>
+        <a th:href="@{/admin/orders}" class="link">すべて見る</a>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+          <tr>
+            <th>商品名</th>
+            <th>購入者</th>
+            <th class="col-right">価格</th>
+            <th>ステータス</th>
+          </tr>
+          </thead>
+
+          <tbody th:if="${#lists.isEmpty(recentOrders)}">
+          <tr>
+            <td colspan="4" class="table-empty">最近の注文はありません。</td>
+          </tr>
+          </tbody>
+
+          <tbody th:unless="${#lists.isEmpty(recentOrders)}">
+          <tr th:each="order : ${recentOrders}">
+            <td class="truncate" th:text="${order.item.name}">商品名</td>
+            <td th:text="${order.buyer.name}">購入者</td>
+            <td class="col-right"
+                th:text="'¥' + ${#numbers.formatDecimal(order.price, 0, 'COMMA', 0, 'POINT')}">¥0</td>
+            <td>
+              <span class="badge badge--muted" th:text="${order.status}">STATUS</span>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="admin-footer">
+    <small>© Evolon Admin</small>
+  </footer>
+
+</div>
+</body>
+</html>

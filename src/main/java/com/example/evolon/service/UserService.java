@@ -142,4 +142,19 @@ public class UserService {
 
 		userRepository.save(user);
 	}
+
+	@Transactional
+	public void deactivateAccountByEmail(String email) {
+		User user = userRepository.findByEmailIgnoreCase(email)
+				.orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+		// 退会 = 無効化（論理削除）にするならこれ
+		user.setEnabled(false);
+
+		// もし banned とか他も使うなら必要に応じて
+		// user.setBanned(true);
+
+		userRepository.save(user);
+	}
+
 }

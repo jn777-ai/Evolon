@@ -76,7 +76,7 @@ public class AdminUserController {
 		// 現在のソート条件も画面側で利用できるよう Model に格納
 		model.addAttribute("sort", sort);
 		// ユーザー一覧画面に対応するテンプレートを返却
-		return "admin_users";
+		return "pages/admin/admin_users";
 	}
 
 	@GetMapping("/{id}")
@@ -92,7 +92,7 @@ public class AdminUserController {
 		// クレーム詳細一覧を Model に格納
 		model.addAttribute("complaints", service.complaints(id));
 		// ユーザー詳細画面に対応するテンプレート名を返却
-		return "admin_user_detail";
+		return "pages/admin/admin_user_detail";
 	}
 
 	// ユーザーを BAN（利用停止）する処理を担当するハンドラー（POST /admin/users/{id}/ban）

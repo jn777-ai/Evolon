@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>問い合わせ詳細 - Evolon Admin</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+  
+</head>
+
+<body class="admin-page">
+<div class="container">
+
+  <!-- ページヘッダー -->
+  <div class="page-head">
+    <div>
+      <h1 class="page-title">問い合わせ詳細</h1>
+      <p class="page-sub">問い合わせ内容の確認と返信・対応ステータスの更新ができます。</p>
+    </div>
+
+    <div class="page-actions">
+      <a th:href="@{/admin/inquiries}" class="button secondary">一覧へ戻る</a>
+    </div>
+  </div>
+
+  <!-- 詳細カード -->
+  <section class="card detail-card">
+
+    <div class="detail-grid">
+      <div class="detail-row">
+        <div class="detail-label">ID</div>
+        <div class="detail-value" th:text="${inquiry.id}">1</div>
+      </div>
+
+      <div class="detail-row">
+        <div class="detail-label">ユーザー</div>
+        <div class="detail-value" th:text="${inquiry.user.name}">ユーザー名</div>
+      </div>
+
+      <div class="detail-row">
+        <div class="detail-label">件名</div>
+        <div class="detail-value" th:text="${inquiry.subject}">件名</div>
+      </div>
+
+      <div class="detail-row detail-row--full">
+        <div class="detail-label">メッセージ</div>
+        <div class="detail-value detail-value--box" th:text="${inquiry.message}">
+          メッセージ本文
+        </div>
+      </div>
+
+      <div class="detail-row">
+        <div class="detail-label">ステータス</div>
+        <div class="detail-value">
+          <span class="badge badge--muted" th:text="${inquiry.status}">OPEN</span>
+        </div>
+      </div>
+
+      <div class="detail-row detail-row--full">
+        <div class="detail-label">返信</div>
+
+        <div class="detail-value detail-value--box"
+             th:if="${inquiry.adminReply != null and !#strings.isEmpty(inquiry.adminReply)}"
+             th:text="${inquiry.adminReply}">
+          返信内容
+        </div>
+
+        <div class="detail-value detail-empty"
+             th:unless="${inquiry.adminReply != null and !#strings.isEmpty(inquiry.adminReply)}">
+          まだ返信はありません。
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- 返信フォーム -->
+    <div class="form-block">
+      <h2 class="section-title">返信</h2>
+
+      <form th:action="@{/admin/inquiries/{id}/reply(id=${inquiry.id})}" method="post" class="form">
+        <label class="form-label" for="adminReply">返信内容</label>
+        <textarea id="adminReply" name="adminReply" class="textarea" rows="6"
+                  placeholder="返信内容を入力してください"></textarea>
+
+        <div class="form-actions">
+          <button type="submit" class="button">返信して一覧へ戻る</button>
+          <a th:href="@{/admin/inquiries}" class="button secondary">キャンセル</a>
+        </div>
+      </form>
+    </div>
+
+    <hr class="divider">
+
+    <!-- 対応済みボタン -->
+    <div class="form-block">
+      <h2 class="section-title">ステータス更新</h2>
+
+      <form th:action="@{/admin/inquiries/{id}/close(id=${inquiry.id})}" method="post" class="form-actions">
+        <button type="submit" class="button danger">対応済みにして一覧へ戻る</button>
+      </form>
+    </div>
+
+  </section>
+
+</div>
+</body>
+</html>

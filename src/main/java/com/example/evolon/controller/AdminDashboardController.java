@@ -35,6 +35,6 @@ public class AdminDashboardController {
 		model.addAttribute("recentOrders",
 				appOrderService.getRecentOrders());
 
-		return "admin_dashboard";
+		return "pages/admin/admin_dashboard";
 	}
 }

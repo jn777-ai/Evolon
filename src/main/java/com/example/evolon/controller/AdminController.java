@@ -52,7 +52,7 @@ public class AdminController {
 		// すべての商品一覧を取得して、ビューに渡すために Model へ登録
 		model.addAttribute("items", itemService.getAllItems());
 		//admin_items.html というテンプレート名を返し、商品管理画面を表示
-		return "admin_items";
+		return "pages/admin/admin_items";
 	}
 
 	//管理者が商品を削除するためのハンドラ（POST /admin/items/{id}/delete）
@@ -90,7 +90,7 @@ public class AdminController {
 		// 課題用：仮の違反理由（DB持たなくてOK）
 		model.addAttribute("violationReason", "ガイドライン違反の可能性あり");
 
-		return "admin_item_detail";
+		return "pages/admin/admin_item_detail";
 	}
 
 	//統計関係
@@ -124,7 +124,7 @@ public class AdminController {
 		model.addAttribute("orderCountByStatus",
 				appOrderService.getOrderCountByStatus(startDate, endDate));
 		//admin_statistics.html というテンプレート名を返し、統計画面を表示
-		return "admin_statistics";
+		return "pages/admin/admin_statistics";
 	}
 
 	//売上統計を CSV 形式でダウンロードさせるためのハンドラ（GET /admin/statistics/csv
