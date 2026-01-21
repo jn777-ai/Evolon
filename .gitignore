@@ -36,3 +36,4 @@ build/
 src/main/resources/application.properties
 src/main/resources/application.properties.local
 src/main/resources/application.properties.example
+src/main/resources/application.properties.properties

@@ -99,14 +99,39 @@
 
 			<!-- 画像アップロード -->
 			<p>
-				<label for="image">商品画像:</label>
-				<input type="file" id="image" name="image" accept="image/*">
-				<!-- 既存画像がある場合は表示 -->
+				<label for="images">商品画像:</label>
+				<input type="file" id="images" name="images" accept="image/*" multiple>
+				<small>※最大8枚まで</small>
+
+				<!-- 既存画像がある場合は表示（今は1枚だけ） -->
 				<span th:if="${item.imageUrl}">
 					現在の画像:
 					<img th:src="${item.imageUrl}" style="width:100px; height:auto;">
 				</span>
 			</p>
+
+			<script>
+				const input = document.getElementById('images');
+				input.addEventListener('change', function () {
+					const files = Array.from(this.files);
+
+					console.log("selected files =", files.length, files.map(f => `${f.name}(${f.size})`));
+
+					if (files.length > 8) {
+						alert('画像は最大8枚までです');
+						this.value = '';
+						return;
+					}
+
+					const total = files.reduce((sum, f) => sum + f.size, 0);
+					const limit = 80 * 1024 * 1024; // 80MB
+					if (total > limit) {
+						alert('画像の合計サイズが大きすぎます（最大80MB）');
+						this.value = '';
+					}
+				});
+			</script>
+
 
 			<!-- ========================= -->
 			<!-- ★ カード情報入力欄 -->
@@ -115,9 +140,9 @@
 				<!-- カード名 -->
 				<!-- カード番号入力（自動入力用） -->
 				<p>
-				  <label for="cardNumberText">カード番号:</label>
-				  <input type="text" id="cardNumberText" placeholder="例: sv8a 212/187">
-				  <button type="button" id="autoFillBtn">自動入力</button>
+					<label for="cardNumberText">カード番号:</label>
+					<input type="text" id="cardNumberText" placeholder="例: sv8a 212/187">
+					<button type="button" id="autoFillBtn">自動入力</button>
 				</p>
 
 				<p>
@@ -219,32 +244,32 @@
 		});
 	</script>
 	<script>
-	document.getElementById('autoFillBtn')?.addEventListener('click', async () => {
-	  const text = document.getElementById('cardNumberText').value;
+		document.getElementById('autoFillBtn')?.addEventListener('click', async () => {
+			const text = document.getElementById('cardNumberText').value;
 
-	  if (!text) {
-	    alert('カード番号を入力してください');
-	    return;
-	  }
+			if (!text) {
+				alert('カード番号を入力してください');
+				return;
+			}
 
-	  const res = await fetch('/items/auto-fill?text=' + encodeURIComponent(text));
-	  if (!res.ok) {
-	    alert('自動入力に失敗しました');
-	    return;
-	  }
+			const res = await fetch('/items/auto-fill?text=' + encodeURIComponent(text));
+			if (!res.ok) {
+				alert('自動入力に失敗しました');
+				return;
+			}
 
-	  const data = await res.json();
-	  if (!data) {
-	    alert('該当カードが見つかりませんでした');
-	    return;
-	  }
+			const data = await res.json();
+			if (!data) {
+				alert('該当カードが見つかりませんでした');
+				return;
+			}
 
-	  // 既存フォームへ反映
-	  document.getElementById('cardName').value = data.cardName ?? '';
-	  document.getElementById('packName').value = data.packName ?? '';
-	  document.getElementById('rarity').value = data.rarity ?? '';
-	  document.getElementById('regulation').value = data.regulation ?? '';
-	});
+			// 既存フォームへ反映
+			document.getElementById('cardName').value = data.cardName ?? '';
+			document.getElementById('packName').value = data.packName ?? '';
+			document.getElementById('rarity').value = data.rarity ?? '';
+			document.getElementById('regulation').value = data.regulation ?? '';
+		});
 	</script>
 
 

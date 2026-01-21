@@ -122,14 +122,34 @@ public class ItemService {
 	 * ========================= */
 
 	@Transactional
-	public Item saveItem(Item item, MultipartFile imageFile) throws IOException {
+	public Item saveItem(Item item, MultipartFile[] imageFiles) throws IOException {
 
-		// 画像がある場合は Cloudinary へアップロードし、URLを保存する
-		if (imageFile != null && !imageFile.isEmpty()) {
-			item.setImageUrl(cloudinaryService.uploadFile(imageFile));
+		if (imageFiles == null || imageFiles.length == 0) {
+			return itemRepository.save(item);
 		}
 
-		// DBへ保存
+		// 最大8枚
+		int max = Math.min(imageFiles.length, 8);
+
+		for (int i = 0; i < max; i++) {
+			MultipartFile f = imageFiles[i];
+			if (f == null || f.isEmpty())
+				continue;
+
+			String url = cloudinaryService.uploadFile(f);
+
+			switch (i) {
+			case 0 -> item.setImageUrl(url);
+			case 1 -> item.setImageUrl2(url);
+			case 2 -> item.setImageUrl3(url);
+			case 3 -> item.setImageUrl4(url);
+			case 4 -> item.setImageUrl5(url);
+			case 5 -> item.setImageUrl6(url);
+			case 6 -> item.setImageUrl7(url);
+			case 7 -> item.setImageUrl8(url);
+			}
+		}
+
 		return itemRepository.save(item);
 	}
 

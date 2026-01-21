@@ -49,6 +49,13 @@ CREATE TABLE item (
     status VARCHAR(20) NOT NULL DEFAULT 'SELLING',
 
     image_url TEXT,
+	image_url2 TEXT,
+  	image_url3 TEXT,
+  	image_url4 TEXT,
+  	image_url5 TEXT,
+	image_url6 TEXT,
+	image_url7 TEXT,
+	image_url8 TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 

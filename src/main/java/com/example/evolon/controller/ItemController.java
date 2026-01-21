@@ -298,51 +298,28 @@ public class ItemController {
 	 * ========================================================= */
 	@PostMapping
 	public String addItem(
-			// 認証済みユーザ（未ログインなら null）
 			@AuthenticationPrincipal UserDetails userDetails,
-
-			// ★ フォーム全体を Item として受け取る
 			@ModelAttribute Item item,
-
-			// カテゴリ ID（select は entity 直 bind しない方が安全）
 			@RequestParam("categoryId") Long categoryId,
-
-			// 画像
-			@RequestParam(value = "image", required = false) MultipartFile imageFile,
-
+			@RequestParam(value = "images", required = false) MultipartFile[] imageFiles,
 			RedirectAttributes redirectAttributes) {
 
-		// =========================
-		// 未ログイン防止
-		// =========================
 		if (userDetails == null) {
 			redirectAttributes.addFlashAttribute("errorMessage", "ログインしてください。");
 			return "redirect:/login";
 		}
 
-		// =========================
-		// 出品者設定
-		// =========================
 		User seller = userService.getUserByEmail(userDetails.getUsername())
 				.orElseThrow(() -> new RuntimeException("Seller not found"));
 		item.setSeller(seller);
 
-		// =========================
-		// カテゴリ設定
-		// =========================
 		Category category = categoryService.getCategoryById(categoryId)
 				.orElseThrow(() -> new IllegalArgumentException("Category not found"));
 		item.setCategory(category);
 
-		// =========================
-		// ★ カードカテゴリ以外なら CardInfo を無視する（サーバ側安全対策）
-		// =========================
 		if (category.getName() == null || !"カード".equals(category.getName())) {
 			item.setCardInfo(null);
 		} else {
-			// =========================
-			// OneToOne の owner は CardInfo（カードカテゴリのみ必須）
-			// =========================
 			if (item.getCardInfo() == null
 					|| item.getCardInfo().getCardName() == null || item.getCardInfo().getCardName().isBlank()
 					|| item.getCardInfo().getPackName() == null || item.getCardInfo().getPackName().isBlank()
@@ -356,22 +333,26 @@ public class ItemController {
 				return "redirect:/items/new";
 			}
 
-			// =========================
-			// ★ 超重要：CardInfo 側に Item をセット
-			// =========================
 			item.getCardInfo().setItem(item);
 		}
 
-		// =========================
-		// 保存
-		// =========================
+		// ★ ここで「何枚来てるか」を確実にログ出し
+		System.out.println("images param = " + (imageFiles == null ? "null" : imageFiles.length));
+		if (imageFiles != null) {
+			for (int i = 0; i < imageFiles.length; i++) {
+				MultipartFile f = imageFiles[i];
+				System.out.println(i + ": "
+						+ (f == null ? "null" : f.getOriginalFilename())
+						+ " size=" + (f == null ? -1 : f.getSize())
+						+ " empty=" + (f == null ? "?" : f.isEmpty()));
+			}
+		}
+
 		try {
-			itemService.saveItem(item, imageFile);
+			itemService.saveItem(item, imageFiles);
 			redirectAttributes.addFlashAttribute("successMessage", "商品を出品しました！");
 		} catch (IOException e) {
-			redirectAttributes.addFlashAttribute(
-					"errorMessage",
-					"画像のアップロードに失敗しました: " + e.getMessage());
+			redirectAttributes.addFlashAttribute("errorMessage", "画像のアップロードに失敗しました: " + e.getMessage());
 			return "redirect:/items/new";
 		}
 
@@ -420,7 +401,7 @@ public class ItemController {
 			@RequestParam("categoryId") Long categoryId,
 
 			// 画像ファイル（任意）
-			@RequestParam(value = "image", required = false) MultipartFile imageFile,
+			@RequestParam(value = "images", required = false) MultipartFile[] imageFiles,
 
 			// 発送系（フォームにあるなら受け取って更新する）
 			@RequestParam("shippingDuration") ShippingDuration shippingDuration,
@@ -506,7 +487,7 @@ public class ItemController {
 		}
 
 		try {
-			itemService.saveItem(existingItem, imageFile);
+			itemService.saveItem(existingItem, imageFiles);
 			redirectAttributes.addFlashAttribute("successMessage", "商品を更新しました！");
 		} catch (IOException e) {
 			redirectAttributes.addFlashAttribute("errorMessage", "画像のアップロードに失敗しました: " + e.getMessage());
