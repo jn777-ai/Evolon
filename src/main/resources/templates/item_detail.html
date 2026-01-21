@@ -26,10 +26,20 @@
 		<!-- ========================= -->
 		<div class="item-detail">
 
-			<!-- 商品画像 -->
-			<img class="item-image" th:if="${item.imageUrl != null}" th:src="${item.imageUrl}" alt="商品画像">
+			<!-- 商品画像（複数） -->
+			<div class="item-images">
+				<img th:if="${item.imageUrl}" th:src="${item.imageUrl}" class="item-image">
+				<img th:if="${item.imageUrl2}" th:src="${item.imageUrl2}" class="item-image">
+				<img th:if="${item.imageUrl3}" th:src="${item.imageUrl3}" class="item-image">
+				<img th:if="${item.imageUrl4}" th:src="${item.imageUrl4}" class="item-image">
+				<img th:if="${item.imageUrl5}" th:src="${item.imageUrl5}" class="item-image">
+				<img th:if="${item.imageUrl6}" th:src="${item.imageUrl6}" class="item-image">
+				<img th:if="${item.imageUrl7}" th:src="${item.imageUrl7}" class="item-image">
+				<img th:if="${item.imageUrl8}" th:src="${item.imageUrl8}" class="item-image">
+			</div>
 
-			<img class="item-image" th:if="${item.imageUrl == null}" th:src="@{/images/placeholder.png}" alt="商品画像">
+			<!-- 画像が1枚もない場合 -->
+			<img th:if="${item.imageUrl == null}" th:src="@{/images/placeholder.png}" class="item-image">
 
 			<!-- 価格 -->
 			<p class="price">
