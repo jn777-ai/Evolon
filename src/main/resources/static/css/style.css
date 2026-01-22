@@ -544,5 +544,927 @@ tbody tr:last-child td {
   justify-content: flex-start;
 }
 
+/* =====================
+   Item List (Pokemon Type)
+===================== */
 
+.item-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-top: 14px;
+}
+
+@media (max-width: 980px) {
+  .item-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 740px) {
+  .item-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 460px) {
+  .item-grid { grid-template-columns: 1fr; }
+}
+
+.item-card {
+  position: relative;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.06);
+  transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+}
+
+.item-card a {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.item-card img {
+  width: 100%;
+  height: 170px;
+  object-fit: cover;
+  display: block;
+  background: #f3f4f6;
+}
+
+.item-card h3 {
+  margin: 10px 12px 6px;
+  font-size: 14px;
+  line-height: 1.35;
+  min-height: 38px; /* 2行くらいの高さ確保 */
+}
+
+.item-card .price {
+  margin: 0 12px 12px;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+/* タイプの“上ライン” */
+.item-card::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0;
+  width: 100%;
+  height: 4px;
+  background: var(--type, #e5e7eb);
+}
+
+/* バッジ（画像上に重ねる） */
+.type-badge {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  z-index: 2;
+
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .6px;
+
+  background: rgba(255,255,255,0.92);
+  border: 1px solid rgba(0,0,0,0.08);
+
+  /* タイプ色 */
+  color: var(--type, #111827);
+}
+
+/* ホバーで気持ちよく */
+.item-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--type, #cbd5e1);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.10);
+}
+
+@charset "UTF-8";
+
+
+/* =====================
+   Default
+===================== */
+.logo {
+  text-align: center;
+  margin-bottom: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+
+.container {
+  max-width: 1000px;
+  margin: 24px auto;
+  padding: 0 16px;
+}
+
+.auth {
+  display: flex;
+  justify-content: center;
+  padding: 24px 0;
+}
+
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #f6f7f9;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  background: #fff;
+  padding: 32px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
+
+
+.auth-title {
+  margin: 0 0 16px;
+  font-size: 22px;
+}
+
+.form-label {
+  display: block;
+  margin: 12px 0;
+  font-size: 14px;
+}
+
+.input {
+  width: 100%;
+  height: 44px;
+  border: 1px solid #dcdcdc;
+  border-radius: 10px;
+  padding: 0 12px;
+  margin-top: 6px;
+}
+
+.btn-block {
+  width: 100%;
+  height: 44px;
+  border: none;
+  border-radius: 10px;
+  margin-top: 12px;
+  cursor: pointer;
+}
+
+.msg {
+  margin: 8px 0 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.msg.error { background: #fff0f0; border: 1px solid #ffd0d0; }
+.msg.success { background: #f0fff4; border: 1px solid #ccefd6; }
+
+.auth-links {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 14px;
+  font-size: 13px;
+}
+
+
+/* =====================
+   Login Page
+===================== */
+
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #f6f7f9;
+}
+
+.login-page .auth-card {
+  width: 100%;
+  max-width: 420px;
+  background: #fff;
+  padding: 32px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
+
+.login-page h1 {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.login-page h2 {
+  text-align: center;
+  font-size: 20px;
+  margin-bottom: 24px;
+}
+
+/* フォーム */
+.login-page form p {
+  margin-bottom: 16px;
+}
+
+.login-page label {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+
+.login-page input[type="text"],
+.login-page input[type="password"],
+.login-page input[type="email"] {
+  width: 100%;
+  box-sizing: border-box;
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+
+.login-page input:focus {
+  outline: none;
+  border-color: #4f46e5;
+}
+
+/* ボタン */
+.login-page .button-group {
+  margin-top: 24px;
+}
+
+.login-page .button {
+  width: 100%;
+  height: 44px;
+  background: #4f46e5;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.login-page .button:hover {
+  opacity: 0.9;
+}
+
+/* メッセージ */
+.error-message {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.success-message {
+  background: #dcfce7;
+  color: #166534;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+/* 下リンク */
+.login-page .text-center {
+  text-align: center;
+  font-size: 13px;
+  margin-top: 12px;
+}
+
+.login-page .text-center a {
+  color: #4f46e5;
+  text-decoration: none;
+}
+
+/* Auth pages - text */
+.auth-text {
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+/* Button as link */
+.button-link {
+  display: block;
+  text-align: center;
+  line-height: 44px;
+  text-decoration: none;
+}
+
+/* =====================
+   Admin Dashboard
+===================== */
+
+.admin-page h1 {
+  margin-bottom: 8px;
+}
+
+.admin-page .container {
+  padding: 0 8px; 
+}
+
+
+.admin-page p {
+  margin-top: 0;
+  margin-bottom: 16px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* nav buttons */
+.main-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 16px 0 24px;
+}
+
+/* buttons (base) */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  text-decoration: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+
+  background: #4f46e5;
+  color: #fff;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.button:hover {
+  opacity: 0.92;
+  transform: translateY(-1px);
+}
+
+.button:active {
+  transform: translateY(0px);
+}
+
+/* secondary button */
+.button.secondary {
+  background: #fff;
+  color: #111827;
+  border-color: #e5e7eb;
+}
+
+.button.secondary:hover {
+  opacity: 1;
+  background: #f9fafb;
+}
+
+/* section heading */
+.admin-section-title {
+  margin: 18px 0 10px;
+  font-size: 16px;
+  color: #111827;
+}
+
+/* table */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.05);
+  margin-bottom: 22px;
+}
+
+thead th {
+  background: #f9fafb;
+  color: #374151;
+  font-size: 13px;
+  text-align: left;
+  padding: 12px 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+tbody td {
+  padding: 12px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 14px;
+  color: #111827;
+}
+
+tbody tr:hover {
+  background: #fafafa;
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* empty row */
+.table-empty {
+  color: #6b7280;
+  text-align: center;
+}
+
+/* =====================
+   Admin Detail Page
+===================== */
+
+.page-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 16px 0 14px;
+}
+
+.page-title {
+  margin: 0 0 6px;
+}
+
+.page-sub {
+  margin: 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.page-actions {
+  gap: 10px;
+}
+
+/* detail card */
+.detail-card {
+  padding: 14px 16px 18px;
+}
+
+.detail-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.detail-row {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.detail-row--full {
+  grid-template-columns: 140px 1fr;
+}
+
+.detail-label {
+  color: #6b7280;
+  font-size: 13px;
+  padding-top: 2px;
+}
+
+.detail-value {
+  color: #111827;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.detail-value--box {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px;
+  white-space: pre-wrap; /* 改行を保持 */
+}
+
+.detail-empty {
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+/* divider */
+.divider {
+  border: none;
+  border-top: 1px solid #eef2f7;
+  margin: 16px 0;
+}
+
+/* form */
+.section-title {
+  margin: 0 0 10px;
+  font-size: 15px;
+  color: #111827;
+}
+
+.form-block {
+  margin-top: 4px;
+}
+
+.form {
+  display: grid;
+  gap: 10px;
+}
+
+.textarea {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 14px;
+  line-height: 1.7;
+  resize: vertical;
+  background: #fff;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: #4f46e5;
+}
+
+/* actions */
+.form-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* danger button */
+.button.danger {
+  background: #ef4444;
+  color: #fff;
+}
+
+.button.danger:hover {
+  opacity: 0.92;
+}
+
+/* =====================
+   Admin Header Layout
+===================== */
+
+.admin-header {
+  display: flex;
+  justify-content: space-between; 
+  align-items: center;
+  gap: 16px;
+}
+
+.admin-header_left {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.admin-header_right {
+  display: flex;
+  align-items: center;
+}
+
+
+/* =====================
+   Admin List Page (Inquiries)
+===================== */
+
+.filters {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 10px 0 14px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #111827;
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.pill:hover {
+  background: #f9fafb;
+}
+
+.table-wrap {
+  padding: 10px;
+}
+
+/* narrow/align cols */
+.col-narrow { width: 70px; }
+.col-right { text-align: right; }
+.col-actions { width: 110px; }
+
+.button.small {
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+/* truncate subject */
+.truncate {
+  max-width: 340px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.page-actions--bottom {
+  margin: 24px 0 40px;
+  display: flex;
+  justify-content: flex-start;
+}
+
+/* =====================
+   Item List (Pokemon Type)
+===================== */
+
+.item-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-top: 14px;
+}
+
+@media (max-width: 980px) {
+  .item-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 740px) {
+  .item-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 460px) {
+  .item-grid { grid-template-columns: 1fr; }
+}
+
+.item-card {
+  position: relative;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.06);
+  transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+}
+
+.item-card a {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.item-card img {
+  width: 100%;
+  height: 170px;
+  object-fit: cover;
+  display: block;
+  background: #f3f4f6;
+}
+
+.item-card h3 {
+  margin: 10px 12px 6px;
+  font-size: 14px;
+  line-height: 1.35;
+  min-height: 38px; /* 2行くらいの高さ確保 */
+}
+
+.item-card .price {
+  margin: 0 12px 12px;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+/* タイプの“上ライン” */
+.item-card::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0;
+  width: 100%;
+  height: 4px;
+  background: var(--type, #e5e7eb);
+}
+
+/* バッジ（画像上に重ねる） */
+.type-badge {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  z-index: 2;
+
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .6px;
+
+  background: rgba(255,255,255,0.92);
+  border: 1px solid rgba(0,0,0,0.08);
+
+  /* タイプ色 */
+  color: var(--type, #111827);
+}
+
+/* ホバーで気持ちよく */
+.item-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--type, #cbd5e1);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.10);
+}
+
+/* =====================
+   Category Colors
+   (category-*** はHTML側の classappend と対応)
+===================== */
+
+/* デフォルト */
+.category-other  { --type: #64748b; } /* グレー */
+
+/* カテゴリ別 */
+.category-card   { --type: #3b82f6; } /* 青：カード */
+.category-supply { --type: #22c55e; } /* 緑：サプライ */
+.category-deck   { --type: #f97316; } /* オレンジ：デッキ・構築済み */
+
+/* =====================
+   Search Modal
+===================== */
+
+.search-head{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin: 10px 0 14px;
+}
+.search-hint{
+  color:#6b7280;
+  font-size:13px;
+}
+
+.modal-backdrop{
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: rgba(15, 23, 42, .45);
+  backdrop-filter: blur(6px);
+  z-index: 9999;
+}
+.modal-backdrop.is-open{ display:flex; }
+
+.modal-card{
+  width: min(860px, 96vw);
+  background:#fff;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.18);
+  overflow: hidden;
+  transform: translateY(6px);
+  opacity: 0;
+  transition: transform .18s ease, opacity .18s ease;
+}
+.modal-backdrop.is-open .modal-card{
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.modal-head{
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: #f9fafb;
+  border-bottom: 1px solid #eef2f7;
+}
+.modal-title{
+  margin:0;
+  font-size: 16px;
+  letter-spacing: .2px;
+}
+.modal-close{
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background:#fff;
+  cursor:pointer;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.modal-form{
+  padding: 14px 16px 16px;
+}
+.modal-form.filter-form{
+  display:grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+@media (max-width: 720px){
+  .modal-form.filter-form{ grid-template-columns: 1fr; }
+}
+
+.modal-form label{
+  display:block;
+  font-size: 12px;
+  color:#6b7280;
+  margin-bottom: 6px;
+}
+
+.modal-form input,
+.modal-form select{
+  width:100%;
+  height: 40px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 0 12px;
+  box-sizing: border-box;
+}
+
+.modal-form input:focus,
+.modal-form select:focus{
+  outline:none;
+  border-color:#4f46e5;
+}
+
+.range{
+  display:flex;
+  align-items:center;
+  gap: 10px;
+}
+.range-sep{
+  color:#6b7280;
+  font-size: 13px;
+}
+
+.modal-actions{
+  grid-column: 1 / -1;
+  display:flex;
+  justify-content:flex-end;
+  gap: 10px;
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid #eef2f7;
+}
+
+body.modal-lock{
+  overflow: hidden;
+}
+
+.item-card {
+  box-shadow:
+    0 8px 18px rgba(0,0,0,0.06),
+    0 0 0 1px rgba(0,0,0,0.02);
+}
+
+.item-card:hover {
+  box-shadow:
+    0 12px 28px color-mix(in srgb, var(--type) 18%, transparent),
+    0 4px 12px rgba(0,0,0,0.08);
+}
+
+.type-badge::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--type);
+  margin-right: 6px;
+}
+
+.item-card .price {
+  border-top: 1px dashed #e5e7eb;
+  padding-top: 8px;
+}
+
+.status {
+  display: inline-block;
+  margin: 0 12px 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.status.selling {
+  background: #ecfeff;
+  color: #0369a1;
+}
 
