@@ -58,7 +58,7 @@ public class Review {
 	@Column(name = "rating", nullable = false)
 	private Integer rating;
 
-	@Column(name = "comment", nullable = false)
+	@Column(name = "comment")
 	private String comment;
 
 	@Column(name = "created_at", insertable = false, updatable = false)

@@ -1,14 +1,19 @@
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<body>
-<header th:fragment="header" class="header">
-  <div class="header-inner">
-    <a th:href="@{/}" class="logo">Evolon</a>
-    <nav class="nav">
-      <a th:href="@{/login}">ログイン</a>
-      <a th:href="@{/register}" class="btn-primary">新規登録</a>
-    </nav>
-  </div>
-</header>
-</body>
-</html>
+<div th:fragment="header"
+     xmlns:th="http://www.thymeleaf.org"
+     xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+     class="header-inner">
+
+  <!-- 左：ロゴ -->
+  <a th:href="@{/}" class="logo">Evolon</a>
+
+  <!-- 右：ナビ -->
+  <nav class="nav">
+    <a th:href="@{/my-page}" class="btn-primary button--outline">マイページ</a>
+
+    <form th:action="@{/logout}" method="post" class="nav-form">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+      <button type="submit" class="btn-primary btn-logout">ログアウト</button>
+    </form>
+  </nav>
+
+</div>

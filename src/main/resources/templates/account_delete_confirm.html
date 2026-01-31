@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>退会の注意事項</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="container">
+
+  <h1>退会の注意事項</h1>
+
+  <div class="card">
+    <p class="muted">退会すると、次の内容にご注意ください。</p>
+    <ul>
+      <li>このアカウントではログインできなくなります。</li>
+      <li>取引中のデータがある場合、影響が出る可能性があります。</li>
+      <li>この操作は取り消せません。</li>
+    </ul>
+
+    <p class="muted" th:if="${email != null}">
+      対象アカウント：<span th:text="${email}"></span>
+    </p>
+  </div>
+
+  <div class="spacer-24"></div>
+
+  <a th:href="@{/account/delete}" class="button danger">理解しました。退会へ進む</a>
+  <a th:href="@{/my-page/account}" class="button secondary">戻る</a>
+
+</div>
+</body>
+</html>

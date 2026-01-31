@@ -1,5 +1,7 @@
 package com.example.evolon.service;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,7 +21,7 @@ public class ReviewService {
 	private final ReviewRepository reviewRepository;
 
 	/* =====================
-	 * 集計系
+	 * 集計系（内部用：全件）
 	 * ===================== */
 
 	public long countGoodForUser(User user) {
@@ -31,6 +33,32 @@ public class ReviewService {
 	}
 
 	/* =====================
+	 *  集計系（公開用：2者評価が揃った分だけ）
+	 * ===================== */
+
+	public long countVisibleGoodForUser(User user) {
+		return reviewRepository.countVisibleByRevieweeAndResult(user, ReviewResult.GOOD);
+	}
+
+	public long countVisibleBadForUser(User user) {
+		return reviewRepository.countVisibleByRevieweeAndResult(user, ReviewResult.BAD);
+	}
+
+	/* =====================
+	 * 評価一覧取得
+	 * ===================== */
+
+	// 内部用（全件）
+	public List<Review> findReviewsForUser(User user) {
+		return reviewRepository.findByRevieweeOrderByCreatedAtDesc(user);
+	}
+
+	//  公開用（2者評価が揃った分だけ）
+	public List<Review> findVisibleReviewsForUser(User user) {
+		return reviewRepository.findVisibleReviewsForUser(user);
+	}
+
+	/* =====================
 	 * レビュー済み判定
 	 * ===================== */
 
@@ -39,7 +67,7 @@ public class ReviewService {
 	}
 
 	/* =====================
-	 * レビュー作成（共通）
+	 * レビュー作成（ここは既存のまま）
 	 * ===================== */
 	@Transactional
 	public Review createReview(
@@ -50,7 +78,6 @@ public class ReviewService {
 
 		validateReviewInput(order, reviewer, result, comment);
 
-		// 二重レビュー防止
 		if (hasReviewed(order.getId(), reviewer)) {
 			throw new IllegalStateException("すでに評価済みです");
 		}
@@ -62,7 +89,6 @@ public class ReviewService {
 			throw new IllegalStateException("この取引を評価する権限がありません");
 		}
 
-		// 到着確認後のみ評価可
 		if (order.getOrderStatus() != OrderStatus.DELIVERED
 				&& order.getOrderStatus() != OrderStatus.COMPLETED) {
 			throw new IllegalStateException("到着確認後に評価できます");
@@ -76,9 +102,7 @@ public class ReviewService {
 			}
 		}
 
-		User reviewee = isBuyer
-				? order.getItem().getSeller()
-				: order.getBuyer();
+		User reviewee = isBuyer ? order.getItem().getSeller() : order.getBuyer();
 
 		Review review = new Review();
 		review.setOrder(order);
@@ -96,28 +120,20 @@ public class ReviewService {
 		return reviewRepository.save(review);
 	}
 
-	/* =====================
-	 * private
-	 * ===================== */
-
 	private void validateReviewInput(
 			AppOrder order,
 			User reviewer,
 			ReviewResult result,
 			String comment) {
 
-		if (order == null || order.getId() == null) {
+		if (order == null || order.getId() == null)
 			throw new IllegalArgumentException("order が不正です");
-		}
-		if (reviewer == null) {
+		if (reviewer == null)
 			throw new IllegalArgumentException("reviewer が不正です");
-		}
-		if (result == null) {
+		if (result == null)
 			throw new IllegalArgumentException("result が不正です");
-		}
-		if (comment == null || comment.trim().isEmpty()) {
+		if (comment == null || comment.trim().isEmpty())
 			throw new IllegalArgumentException("comment は必須です");
-		}
 	}
 
 	// 旧Controller互換（seller用）

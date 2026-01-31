@@ -33,6 +33,31 @@
             <strong th:text="${order.orderStatus.label}"></strong>
         </p>
     </section>
+	
+
+	<!-- ================= 購入者情報 ================= -->
+	<section th:if="${isSeller}" class="card">
+	  <h2>配送先情報</h2>
+	  <p>
+	    宛名：
+	    <span th:text="${order.shippingLastName}"></span>
+	    <span th:text="${order.shippingFirstName}"></span>
+	  </p>
+	  <p>郵便番号：<span th:text="${order.shippingPostalCode}"></span></p>
+	  <p>住所：<span th:text="${order.shippingAddress}"></span></p>
+	</section>
+
+	<section th:if="${isBuyer}"class="card">
+	  <h2>配送先情報</h2>
+	  <p>
+	    宛名：
+	    <span th:text="${order.shippingLastName}"></span>
+	    <span th:text="${order.shippingFirstName}"></span>
+	  </p>
+	  <p>郵便番号：<span th:text="${order.shippingPostalCode}"></span></p>
+	  <p>住所：<span th:text="${order.shippingAddress}"></span></p>
+	</section>
+
 
     <!-- ================= 出品者：発送 ================= -->
     <section th:if="${canShip}">

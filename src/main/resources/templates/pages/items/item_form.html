@@ -1,10 +1,14 @@
 <!DOCTYPE html>
-<html lang="ja" xmlns:th="http://www.thymeleaf.org">
-<head>
-  <meta charset="UTF-8">
-  <title th:text="${item.id == null ? '商品出品' : '商品編集'}"></title>
-  <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
+<html lang="ja"
+      xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/layout :: layout(
+        title='Evolon-商品一覧',
+        content=~{::content},
+        showHeader=true,
+        showFooter=true
+      )}">
+
+<th:block th:fragment="content">
 <body>
 <div class="container">
   <h1 th:text="${item.id == null ? '商品出品' : '商品編集'}"></h1>
@@ -23,7 +27,7 @@
       <input type="text" id="name" name="name" th:value="${item.name}" required>
     </p>
 
-    <!-- ✅ カテゴリ（商品名の直下に移動） -->
+    <!--  カテゴリ（商品名の直下に移動） -->
     <p>
       <label for="categoryId">カテゴリ:</label>
       <select id="categoryId" name="categoryId" required>
@@ -305,4 +309,5 @@ document.getElementById('autoFillBtn')?.addEventListener('click', async () => {
 });
 </script>
 </body>
+</th:block>
 </html>

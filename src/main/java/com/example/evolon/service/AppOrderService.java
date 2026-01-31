@@ -76,6 +76,10 @@ public class AppOrderService {
 		order.setStatus(OrderStatus.PAYMENT_PENDING.getLabel());
 		order.setPaymentIntentId(intent.getId());
 		order.setCreatedAt(LocalDateTime.now());
+		order.setShippingLastName(buyer.getLastName());
+		order.setShippingFirstName(buyer.getFirstName());
+		order.setShippingPostalCode(buyer.getPostalCode());
+		order.setShippingAddress(buyer.getAddress());
 
 		appOrderRepository.save(order);
 		return intent;
@@ -191,8 +195,8 @@ public class AppOrderService {
 		if (buyerReviewed && sellerReviewed) {
 			order.setOrderStatus(OrderStatus.COMPLETED);
 			order.setStatus(OrderStatus.COMPLETED.getLabel());
-			 
-			itemService.markAsSold(order.getItem().getId()); 
+
+			itemService.markAsSold(order.getItem().getId());
 
 		}
 	}

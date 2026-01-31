@@ -148,7 +148,7 @@ public class ItemController {
 		model.addAttribute("categories", categories);
 
 		// 一覧画面のテンプレート名を返す
-		return "item_list";
+		return "pages/items/item_list";
 	}
 
 	/* =========================================================
@@ -206,7 +206,7 @@ public class ItemController {
 		model.addAttribute("conditions", CardCondition.values());
 		model.addAttribute("categories", categoryService.getAllCategories());
 
-		return "item_list";
+		return "pages/items/item_list";
 	}
 
 	/* =========================================================
@@ -252,7 +252,7 @@ public class ItemController {
 		model.addAttribute("isOwner", isOwner);
 		model.addAttribute("isFavorited", isFavorited);
 
-		return "item_detail";
+		return "pages/items/item_detail";
 	}
 
 	/* =========================================================
@@ -278,7 +278,7 @@ public class ItemController {
 		model.addAttribute("regulations", Regulation.values());
 
 		// 入力フォームのテンプレート名
-		return "item_form";
+		return "pages/items/item_form";
 	}
 
 	@GetMapping("/auto-fill")
@@ -401,7 +401,7 @@ public class ItemController {
 		model.addAttribute("conditions", CardCondition.values());
 		model.addAttribute("regulations", Regulation.values());
 
-		return "item_form";
+		return "pages/items/item_form";
 	}
 
 	/* =========================================================

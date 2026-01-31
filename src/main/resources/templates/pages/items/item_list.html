@@ -1,55 +1,42 @@
 <!DOCTYPE html>
-<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<div th:replace="~{layout/layout :: layout(
+      title='Evolon-商品一覧',
+      content=~{::content},
+      showHeader=true,
+      showFooter=true
+)}">
 
-<head>
-  <meta charset="UTF-8">
-  <title>商品一覧</title>
-
-  <!-- 共通CSS -->
-  <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
-
-<body>
-  <div class="container">
+  <div th:fragment="content"
+       xmlns:th="http://www.thymeleaf.org"
+       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
     <!-- ========================= -->
-    <!-- ページタイトル -->
+    <!-- ツールバー：左=出品/マイページ 右=絞り込み -->
     <!-- ========================= -->
-    <h1>商品一覧</h1>
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <a th:href="@{/items/new}" class="button button--primary">商品を出品</a>
+      </div>
 
-    <!-- ========================= -->
-    <!-- ナビゲーション -->
-    <!-- ========================= -->
-    <div class="main-nav">
-      <a th:href="@{/items/new}" class="button">商品を出品</a>
-      <a th:href="@{/my-page}" class="button">マイページ</a>
-
-      <form th:action="@{/logout}" method="post" style="display:inline;">
-        <button type="submit" class="button secondary">ログアウト</button>
-      </form>
+      <div class="toolbar-right">
+        <button type="button" class="button secondary" id="openSearch">
+          🔍 絞り込み検索
+        </button>
+      </div>
     </div>
 
     <!-- ========================= -->
-    <!-- 検索ボタン（モーダル開く） -->
+    <!-- 現在の検索条件を表示 -->
     <!-- ========================= -->
-    <div class="search-head">
-      <button type="button" class="button secondary" id="openSearch">
-        🔍 絞り込み検索
-      </button>
+    <div class="search-hint">
+      <span th:if="${param.cardName != null and param.cardName[0] != ''}">
+        カード名: <b th:text="${param.cardName[0]}"></b>
+      </span>
 
-      <!-- ========================= -->
-      <!-- 現在の検索条件を表示（カード名 + ステータス） -->
-      <!-- ========================= -->
-      <div class="search-hint">
-        <span th:if="${param.cardName != null and param.cardName[0] != ''}">
-          カード名: <b th:text="${param.cardName[0]}"></b>
-        </span>
-
-        <span th:if="${param.status != null and param.status[0] != ''}">
-          ステータス:
-          <b th:text="${param.status[0] == 'SELLING' ? '出品中' : (param.status[0] == 'SOLD' ? '売り切れ' : param.status[0])}"></b>
-        </span>
-      </div>
+      <span th:if="${param.status != null and param.status[0] != ''}">
+        ステータス:
+        <b th:text="${param.status[0] == 'SELLING' ? '出品中' : (param.status[0] == 'SOLD' ? '売り切れ' : param.status[0])}"></b>
+      </span>
     </div>
 
     <!-- ========================= -->
@@ -67,10 +54,10 @@
         <!-- ========================= -->
         <form th:action="@{/items/search}" method="get" class="filter-form modal-form">
 
-			<div>
-			  <label>カード名</label>
-			  <input type="text" name="cardName" th:value="${param.cardName}">
-			</div>
+          <div>
+            <label>カード名</label>
+            <input type="text" name="cardName" th:value="${param.cardName}">
+          </div>
 
           <div>
             <label>レアリティ</label>
@@ -113,9 +100,7 @@
             </select>
           </div>
 
-          <!-- ========================= -->
-          <!-- ★ 追加：ステータス絞り込み -->
-          <!-- ========================= -->
+          <!-- ★ ステータス絞り込み -->
           <div>
             <label>ステータス</label>
             <select name="status">
@@ -254,39 +239,37 @@
       </a>
     </div>
 
+    <!-- ========================= -->
+    <!-- モーダル開閉JS -->
+    <!-- ========================= -->
+    <script>
+      const modal = document.getElementById('searchModal');
+      const openBtn = document.getElementById('openSearch');
+      const closeBtn = document.getElementById('closeSearch');
+
+      function openModal() {
+        modal.classList.add('is-open');
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('modal-lock');
+      }
+
+      function closeModal() {
+        modal.classList.remove('is-open');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('modal-lock');
+      }
+
+      openBtn.addEventListener('click', openModal);
+      closeBtn.addEventListener('click', closeModal);
+
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+      });
+
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeModal();
+      });
+    </script>
+
   </div>
-
-  <!-- ========================= -->
-  <!-- モーダル開閉JS -->
-  <!-- ========================= -->
-  <script>
-    const modal = document.getElementById('searchModal');
-    const openBtn = document.getElementById('openSearch');
-    const closeBtn = document.getElementById('closeSearch');
-
-    function openModal() {
-      modal.classList.add('is-open');
-      modal.setAttribute('aria-hidden', 'false');
-      document.body.classList.add('modal-lock');
-    }
-
-    function closeModal() {
-      modal.classList.remove('is-open');
-      modal.setAttribute('aria-hidden', 'true');
-      document.body.classList.remove('modal-lock');
-    }
-
-    openBtn.addEventListener('click', openModal);
-    closeBtn.addEventListener('click', closeModal);
-
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) closeModal();
-    });
-
-    window.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeModal();
-    });
-  </script>
-
-</body>
-</html>
+</div>

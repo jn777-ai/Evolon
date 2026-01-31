@@ -78,6 +78,19 @@ public class AppOrder {
 	@Column(name = "payment_intent_id", unique = true)
 	private String paymentIntentId;
 
+	/** 購入者情報 */
+	@Column(name = "shipping_last_name")
+	private String shippingLastName;
+
+	@Column(name = "shipping_first_name")
+	private String shippingFirstName;
+
+	@Column(name = "shipping_postal_code")
+	private String shippingPostalCode;
+
+	@Column(name = "shipping_address", columnDefinition = "TEXT")
+	private String shippingAddress;
+
 	// ==============================
 	// 状態遷移メソッド
 	// ==============================

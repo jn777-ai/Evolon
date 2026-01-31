@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 <html lang="ja" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/layout :: layout(
-        title='ログイン - フリマアプリ',
+        title='ログイン - Evolon',
         content=~{::content},
         showHeader=false,
-        showFooter=false
-      )}">
+        showFooter=false)}">
 
 <div th:fragment="content">
   <div class="login-page">
@@ -33,7 +32,7 @@
         </p>
 
         <div class="button-group">
-          <button type="submit" class="button">ログイン</button>
+          <button type="submit" class="button button--primary">ログイン</button>
         </div>
       </form>
 

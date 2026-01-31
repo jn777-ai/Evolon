@@ -22,7 +22,7 @@ public class PasswordResetController {
 	// パスワード忘れた画面表示
 	@GetMapping("/forgot")
 	public String forgotForm() {
-		return "password_forgot";
+		return "pages/auth/password_forgot";
 	}
 
 	// メールアドレス送信 → 即リセット画面へ（課題用）
@@ -34,19 +34,19 @@ public class PasswordResetController {
 			token = userService.createResetToken(email);
 		} catch (IllegalArgumentException e) {
 			model.addAttribute("error", "メールアドレスが見つかりません。");
-			return "password_forgot";
+			return "pages/auth/password_forgot";
 		}
 
 		// そのままリセット画面へ遷移
 		model.addAttribute("token", token);
-		return "password_reset";
+		return "pages/auth/password_reset";
 	}
 
 	// （本来はメールリンク用だが残してOK）
 	@GetMapping("/reset")
 	public String resetForm(@RequestParam String token, Model model) {
 		model.addAttribute("token", token);
-		return "password_reset";
+		return "pages/auth/password_reset";
 	}
 
 	// パスワード更新処理
@@ -60,10 +60,10 @@ public class PasswordResetController {
 		if (!password.equals(confirmPassword)) {
 			model.addAttribute("token", token);
 			model.addAttribute("error", "パスワードが一致しません");
-			return "password_reset";
+			return "pages/auth/password_reset";
 		}
 
 		userService.resetPassword(token, password);
-		return "password_reset_complete";
+		return "pages/auth/password_reset_complete";
 	}
 }

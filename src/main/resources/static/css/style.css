@@ -1,10 +1,41 @@
 @charset "UTF-8";
 
+/* =========================
+   TOKENS / THEME
+========================= */
+:root{
+  --bg: #f6f7f9;
+  --card: #ffffff;
+  --text: #111827;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+  --shadow: 0 8px 24px rgba(0,0,0,.06);
+  --radius: 14px;
+
+  /* header sticky offset 用（必要なら調整） */
+  --header-h: 72px;
+}
+
+.app-body{
+  background: var(--bg);
+  color: var(--text);
+  margin: 0;
+}
+
+.app-main{
+  padding: 18px 0 40px;
+}
 
 /* =====================
-   Default
+   BASE / DEFAULT
 ===================== */
-.logo {
+.container{
+  max-width: 1100px;
+  margin: 24px auto;
+  padding: 0 16px;
+}
+
+.logo{
   text-align: center;
   margin-bottom: 10px;
   font-family: 'Inter', sans-serif;
@@ -13,49 +44,42 @@
   letter-spacing: 2px;
 }
 
-
-.container {
-  max-width: 1000px;
-  margin: 24px auto;
-  padding: 0 16px;
-}
-
-.auth {
+/* auth base */
+.auth{
   display: flex;
   justify-content: center;
   padding: 24px 0;
 }
 
-.auth-page {
+.auth-page{
   min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: #f6f7f9;
+  background: var(--bg);
 }
 
-.auth-card {
+.auth-card{
   width: 100%;
   max-width: 420px;
   background: #fff;
   padding: 32px;
   border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
 }
 
-
-.auth-title {
+.auth-title{
   margin: 0 0 16px;
   font-size: 22px;
 }
 
-.form-label {
+.form-label{
   display: block;
   margin: 12px 0;
   font-size: 14px;
 }
 
-.input {
+.input{
   width: 100%;
   height: 44px;
   border: 1px solid #dcdcdc;
@@ -64,7 +88,7 @@
   margin-top: 6px;
 }
 
-.btn-block {
+.btn-block{
   width: 100%;
   height: 44px;
   border: none;
@@ -73,1247 +97,683 @@
   cursor: pointer;
 }
 
-.msg {
+.msg{
   margin: 8px 0 12px;
   padding: 10px 12px;
   border-radius: 10px;
   font-size: 14px;
 }
-
-.msg.error { background: #fff0f0; border: 1px solid #ffd0d0; }
-.msg.success { background: #f0fff4; border: 1px solid #ccefd6; }
-
-.auth-links {
+.msg.error{
+  background: #fff0f0;
+  border: 1px solid #ffd0d0;
+}
+.msg.success{
+  background: #f0fff4;
+  border: 1px solid #ccefd6;
+}
+.auth-links{
   display: flex;
   justify-content: space-between;
   margin-top: 14px;
   font-size: 13px;
 }
 
-
-/* =====================
-   Login Page
-===================== */
-
-.login-page {
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: #f6f7f9;
-}
-
-.login-page .auth-card {
-  width: 100%;
-  max-width: 420px;
+/* =========================
+   HEADER / NAV
+========================= */
+.site-header{
+  position: sticky;
+  top: 0;
+  z-index: 50;
   background: #fff;
-  padding: 32px;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+  border-bottom: 1px solid #e5e7eb;
+  backdrop-filter: none;
 }
 
-.login-page h1 {
-  text-align: center;
-  margin-bottom: 32px;
+.site-header__inner{
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 12px 16px;
 }
 
-.login-page h2 {
-  text-align: center;
-  font-size: 20px;
-  margin-bottom: 24px;
-}
-
-/* フォーム */
-.login-page form p {
-  margin-bottom: 16px;
-}
-
-.login-page label {
-  display: block;
-  font-size: 14px;
-  margin-bottom: 6px;
-}
-
-.login-page input[type="text"],
-.login-page input[type="password"],
-.login-page input[type="email"] {
-  width: 100%;
-  box-sizing: border-box;
-  height: 44px;
-  padding: 0 12px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font-size: 14px;
-}
-
-
-.login-page input:focus {
-  outline: none;
-  border-color: #4f46e5;
-}
-
-/* ボタン */
-.login-page .button-group {
-  margin-top: 24px;
-}
-
-.login-page .button {
-  width: 100%;
-  height: 44px;
-  background: #4f46e5;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-size: 15px;
-  cursor: pointer;
-}
-
-.login-page .button:hover {
-  opacity: 0.9;
-}
-
-/* メッセージ */
-.error-message {
-  background: #fee2e2;
-  color: #991b1b;
-  padding: 10px;
-  border-radius: 6px;
-  font-size: 13px;
-  margin-bottom: 16px;
-}
-
-.success-message {
-  background: #dcfce7;
-  color: #166534;
-  padding: 10px;
-  border-radius: 6px;
-  font-size: 13px;
-  margin-bottom: 16px;
-}
-
-/* 下リンク */
-.login-page .text-center {
-  text-align: center;
-  font-size: 13px;
-  margin-top: 12px;
-}
-
-.login-page .text-center a {
-  color: #4f46e5;
-  text-decoration: none;
-}
-
-/* Auth pages - text */
-.auth-text {
-  font-size: 14px;
-  line-height: 1.7;
-}
-
-/* Button as link */
-.button-link {
-  display: block;
-  text-align: center;
-  line-height: 44px;
-  text-decoration: none;
-}
-
-/* =====================
-   Admin Dashboard
-===================== */
-
-.admin-page h1 {
-  margin-bottom: 8px;
-}
-
-.admin-page .container {
-  padding: 0 8px; 
-}
-
-
-.admin-page p {
-  margin-top: 0;
-  margin-bottom: 16px;
-  color: #6b7280;
-  font-size: 14px;
-}
-
-/* nav buttons */
-.main-nav {
+.header-inner{
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin: 16px 0 24px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
-/* buttons (base) */
-.button {
+.logo{
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: .5px;
+  text-decoration: none;
+  color: inherit;
+  margin-bottom: 0; /* header内のlogoは余白いらない */
+  text-align: left;
+}
+
+.nav{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nav a{
+  text-decoration: none;
+}
+
+.nav-form{
+  margin: 0;
+  display: inline-flex;
+}
+
+/* headerボタン用（保険） */
+.btn-primary{
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 40px;
+  height: 36px;
   padding: 0 14px;
   border-radius: 10px;
-  border: 1px solid transparent;
-  text-decoration: none;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text);
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
+}
+.btn-primary:hover{ filter: brightness(.98); }
 
-  background: #4f46e5;
+/* マイページ（水色） */
+.btn-mypage{
+  background: linear-gradient(135deg, #38bdf8, #0ea5e9);
   color: #fff;
-  transition: opacity 0.15s ease, transform 0.15s ease;
-}
-
-.button:hover {
-  opacity: 0.92;
-  transform: translateY(-1px);
-}
-
-.button:active {
-  transform: translateY(0px);
-}
-
-/* secondary button */
-.button.secondary {
-  background: #fff;
-  color: #111827;
-  border-color: #e5e7eb;
-}
-
-.button.secondary:hover {
-  opacity: 1;
-  background: #f9fafb;
-}
-
-/* section heading */
-.admin-section-title {
-  margin: 18px 0 10px;
-  font-size: 16px;
-  color: #111827;
-}
-
-/* table */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.05);
-  margin-bottom: 22px;
-}
-
-thead th {
-  background: #f9fafb;
-  color: #374151;
-  font-size: 13px;
-  text-align: left;
-  padding: 12px 12px;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-tbody td {
-  padding: 12px 12px;
-  border-bottom: 1px solid #f1f5f9;
-  font-size: 14px;
-  color: #111827;
-}
-
-tbody tr:hover {
-  background: #fafafa;
-}
-
-tbody tr:last-child td {
-  border-bottom: none;
-}
-
-/* empty row */
-.table-empty {
-  color: #6b7280;
-  text-align: center;
-}
-
-/* =====================
-   Admin Detail Page
-===================== */
-
-.page-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
-  margin: 16px 0 14px;
-}
-
-.page-title {
-  margin: 0 0 6px;
-}
-
-.page-sub {
-  margin: 0;
-  color: #6b7280;
-  font-size: 14px;
-}
-
-.page-actions {
-  gap: 10px;
-}
-
-/* detail card */
-.detail-card {
-  padding: 14px 16px 18px;
-}
-
-.detail-grid {
-  display: grid;
-  gap: 12px;
-}
-
-.detail-row {
-  display: grid;
-  grid-template-columns: 140px 1fr;
-  gap: 12px;
-  align-items: start;
-}
-
-.detail-row--full {
-  grid-template-columns: 140px 1fr;
-}
-
-.detail-label {
-  color: #6b7280;
-  font-size: 13px;
-  padding-top: 2px;
-}
-
-.detail-value {
-  color: #111827;
-  font-size: 14px;
-  line-height: 1.7;
-}
-
-.detail-value--box {
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 12px;
-  white-space: pre-wrap; /* 改行を保持 */
-}
-
-.detail-empty {
-  color: #9ca3af;
-  font-size: 14px;
-}
-
-/* divider */
-.divider {
   border: none;
-  border-top: 1px solid #eef2f7;
-  margin: 16px 0;
 }
+.btn-mypage:hover{ filter: brightness(0.95); }
 
-/* form */
-.section-title {
-  margin: 0 0 10px;
-  font-size: 15px;
-  color: #111827;
-}
-
-.form-block {
-  margin-top: 4px;
-}
-
-.form {
-  display: grid;
-  gap: 10px;
-}
-
-.textarea {
-  width: 100%;
-  border: 1px solid #d1d5db;
-  border-radius: 12px;
-  padding: 10px 12px;
-  font-size: 14px;
-  line-height: 1.7;
-  resize: vertical;
-  background: #fff;
-}
-
-.textarea:focus {
-  outline: none;
-  border-color: #4f46e5;
-}
-
-/* actions */
-.form-actions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-/* danger button */
-.button.danger {
-  background: #ef4444;
+/* ログアウト（ピンク） ※二重定義を統一 */
+.btn-logout{
+  background: #f472b6;
   color: #fff;
+  border: 1px solid transparent;
+  box-shadow: 0 8px 20px rgba(244,114,182,.30);
 }
+.btn-logout:hover{ background: #ec4899; }
+.btn-logout:active{ background: #db2777; }
 
-.button.danger:hover {
-  opacity: 0.92;
-}
-
-/* =====================
-   Admin Header Layout
-===================== */
-
-.admin-header {
-  display: flex;
-  justify-content: space-between; 
-  align-items: center;
-  gap: 16px;
-}
-
-.admin-header_left {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.admin-header_right {
-  display: flex;
-  align-items: center;
-}
-
-
-/* =====================
-   Admin List Page (Inquiries)
-===================== */
-
-.filters {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin: 10px 0 14px;
-}
-
-.pill {
-  display: inline-flex;
-  align-items: center;
-  height: 34px;
-  padding: 0 12px;
-  border-radius: 999px;
-  border: 1px solid #e5e7eb;
+/* =========================
+   FOOTER
+========================= */
+.site-footer{
   background: #fff;
-  color: #111827;
-  text-decoration: none;
-  font-size: 13px;
+  border-top: 1px solid var(--border);
+  margin-top: 40px;
 }
 
-.pill:hover {
-  background: #f9fafb;
-}
-
-.table-wrap {
-  padding: 10px;
-}
-
-/* narrow/align cols */
-.col-narrow { width: 70px; }
-.col-right { text-align: right; }
-.col-actions { width: 110px; }
-
-.button.small {
-  height: 34px;
-  padding: 0 12px;
-  border-radius: 10px;
-  font-size: 13px;
-}
-
-/* truncate subject */
-.truncate {
-  max-width: 340px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.page-actions--bottom {
-  margin: 24px 0 40px;
+.footer-inner{
   display: flex;
-  justify-content: flex-start;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 0;
+  font-size: 14px;
+  color: var(--muted);
 }
 
-/* =====================
-   Item List (Pokemon Type)
-===================== */
+.footer-copy{ margin: 0; }
 
-.item-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+.footer-nav{
+  display: flex;
   gap: 14px;
-  margin-top: 14px;
 }
 
-@media (max-width: 980px) {
-  .item-grid { grid-template-columns: repeat(3, 1fr); }
-}
-@media (max-width: 740px) {
-  .item-grid { grid-template-columns: repeat(2, 1fr); }
-}
-@media (max-width: 460px) {
-  .item-grid { grid-template-columns: 1fr; }
-}
-
-.item-card {
-  position: relative;
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 14px;
-  overflow: hidden;
-  box-shadow: 0 8px 18px rgba(0,0,0,0.06);
-  transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
-}
-
-.item-card a {
-  display: block;
+.footer-nav a{
   color: inherit;
   text-decoration: none;
 }
-
-.item-card img {
-  width: 100%;
-  height: 170px;
-  object-fit: cover;
-  display: block;
-  background: #f3f4f6;
-}
-
-.item-card h3 {
-  margin: 10px 12px 6px;
-  font-size: 14px;
-  line-height: 1.35;
-  min-height: 38px; /* 2行くらいの高さ確保 */
-}
-
-.item-card .price {
-  margin: 0 12px 12px;
-  font-size: 15px;
-  font-weight: 800;
-}
-
-/* タイプの“上ライン” */
-.item-card::before {
-  content: "";
-  position: absolute;
-  left: 0; top: 0;
-  width: 100%;
-  height: 4px;
-  background: var(--type, #e5e7eb);
-}
-
-/* バッジ（画像上に重ねる） */
-.type-badge {
-  position: absolute;
-  left: 10px;
-  top: 10px;
-  z-index: 2;
-
-  display: inline-flex;
-  align-items: center;
-  height: 28px;
-  padding: 0 10px;
-  border-radius: 999px;
-
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: .6px;
-
-  background: rgba(255,255,255,0.92);
-  border: 1px solid rgba(0,0,0,0.08);
-
-  /* タイプ色 */
-  color: var(--type, #111827);
-}
-
-/* ホバーで気持ちよく */
-.item-card:hover {
-  transform: translateY(-2px);
-  border-color: var(--type, #cbd5e1);
-  box-shadow: 0 12px 24px rgba(0,0,0,0.10);
-}
-
-@charset "UTF-8";
-
-
-/* =====================
-   Default
-===================== */
-.logo {
-  text-align: center;
-  margin-bottom: 10px;
-  font-family: 'Inter', sans-serif;
-  font-size: 34px;
-  font-weight: 800;
-  letter-spacing: 2px;
-}
-
-
-.container {
-  max-width: 1000px;
-  margin: 24px auto;
-  padding: 0 16px;
-}
-
-.auth {
-  display: flex;
-  justify-content: center;
-  padding: 24px 0;
-}
-
-.auth-page {
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: #f6f7f9;
-}
-
-.auth-card {
-  width: 100%;
-  max-width: 420px;
-  background: #fff;
-  padding: 32px;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-}
-
-
-.auth-title {
-  margin: 0 0 16px;
-  font-size: 22px;
-}
-
-.form-label {
-  display: block;
-  margin: 12px 0;
-  font-size: 14px;
-}
-
-.input {
-  width: 100%;
-  height: 44px;
-  border: 1px solid #dcdcdc;
-  border-radius: 10px;
-  padding: 0 12px;
-  margin-top: 6px;
-}
-
-.btn-block {
-  width: 100%;
-  height: 44px;
-  border: none;
-  border-radius: 10px;
-  margin-top: 12px;
-  cursor: pointer;
-}
-
-.msg {
-  margin: 8px 0 12px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  font-size: 14px;
-}
-
-.msg.error { background: #fff0f0; border: 1px solid #ffd0d0; }
-.msg.success { background: #f0fff4; border: 1px solid #ccefd6; }
-
-.auth-links {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 14px;
-  font-size: 13px;
-}
-
-
-/* =====================
-   Login Page
-===================== */
-
-.login-page {
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: #f6f7f9;
-}
-
-.login-page .auth-card {
-  width: 100%;
-  max-width: 420px;
-  background: #fff;
-  padding: 32px;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-}
-
-.login-page h1 {
-  text-align: center;
-  margin-bottom: 32px;
-}
-
-.login-page h2 {
-  text-align: center;
-  font-size: 20px;
-  margin-bottom: 24px;
-}
-
-/* フォーム */
-.login-page form p {
-  margin-bottom: 16px;
-}
-
-.login-page label {
-  display: block;
-  font-size: 14px;
-  margin-bottom: 6px;
-}
-
-.login-page input[type="text"],
-.login-page input[type="password"],
-.login-page input[type="email"] {
-  width: 100%;
-  box-sizing: border-box;
-  height: 44px;
-  padding: 0 12px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font-size: 14px;
-}
-
-
-.login-page input:focus {
-  outline: none;
-  border-color: #4f46e5;
-}
-
-/* ボタン */
-.login-page .button-group {
-  margin-top: 24px;
-}
-
-.login-page .button {
-  width: 100%;
-  height: 44px;
-  background: #4f46e5;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-size: 15px;
-  cursor: pointer;
-}
-
-.login-page .button:hover {
-  opacity: 0.9;
-}
-
-/* メッセージ */
-.error-message {
-  background: #fee2e2;
-  color: #991b1b;
-  padding: 10px;
-  border-radius: 6px;
-  font-size: 13px;
-  margin-bottom: 16px;
-}
-
-.success-message {
-  background: #dcfce7;
-  color: #166534;
-  padding: 10px;
-  border-radius: 6px;
-  font-size: 13px;
-  margin-bottom: 16px;
-}
-
-/* 下リンク */
-.login-page .text-center {
-  text-align: center;
-  font-size: 13px;
-  margin-top: 12px;
-}
-
-.login-page .text-center a {
-  color: #4f46e5;
-  text-decoration: none;
-}
-
-/* Auth pages - text */
-.auth-text {
-  font-size: 14px;
-  line-height: 1.7;
-}
-
-/* Button as link */
-.button-link {
-  display: block;
-  text-align: center;
-  line-height: 44px;
-  text-decoration: none;
-}
-
-/* =====================
-   Admin Dashboard
-===================== */
-
-.admin-page h1 {
-  margin-bottom: 8px;
-}
-
-.admin-page .container {
-  padding: 0 8px; 
-}
-
-
-.admin-page p {
-  margin-top: 0;
-  margin-bottom: 16px;
-  color: #6b7280;
-  font-size: 14px;
-}
-
-/* nav buttons */
-.main-nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin: 16px 0 24px;
-}
-
-/* buttons (base) */
-.button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 40px;
-  padding: 0 14px;
-  border-radius: 10px;
-  border: 1px solid transparent;
-  text-decoration: none;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-
-  background: #4f46e5;
-  color: #fff;
-  transition: opacity 0.15s ease, transform 0.15s ease;
-}
-
-.button:hover {
-  opacity: 0.92;
-  transform: translateY(-1px);
-}
-
-.button:active {
-  transform: translateY(0px);
-}
-
-/* secondary button */
-.button.secondary {
-  background: #fff;
-  color: #111827;
-  border-color: #e5e7eb;
-}
-
-.button.secondary:hover {
-  opacity: 1;
-  background: #f9fafb;
-}
-
-/* section heading */
-.admin-section-title {
-  margin: 18px 0 10px;
-  font-size: 16px;
-  color: #111827;
-}
-
-/* table */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.05);
-  margin-bottom: 22px;
-}
-
-thead th {
-  background: #f9fafb;
-  color: #374151;
-  font-size: 13px;
-  text-align: left;
-  padding: 12px 12px;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-tbody td {
-  padding: 12px 12px;
-  border-bottom: 1px solid #f1f5f9;
-  font-size: 14px;
-  color: #111827;
-}
-
-tbody tr:hover {
-  background: #fafafa;
-}
-
-tbody tr:last-child td {
-  border-bottom: none;
-}
-
-/* empty row */
-.table-empty {
-  color: #6b7280;
-  text-align: center;
-}
-
-/* =====================
-   Admin Detail Page
-===================== */
-
-.page-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
-  margin: 16px 0 14px;
-}
-
-.page-title {
-  margin: 0 0 6px;
-}
-
-.page-sub {
-  margin: 0;
-  color: #6b7280;
-  font-size: 14px;
-}
-
-.page-actions {
-  gap: 10px;
-}
-
-/* detail card */
-.detail-card {
-  padding: 14px 16px 18px;
-}
-
-.detail-grid {
-  display: grid;
-  gap: 12px;
-}
-
-.detail-row {
-  display: grid;
-  grid-template-columns: 140px 1fr;
-  gap: 12px;
-  align-items: start;
-}
-
-.detail-row--full {
-  grid-template-columns: 140px 1fr;
-}
-
-.detail-label {
-  color: #6b7280;
-  font-size: 13px;
-  padding-top: 2px;
-}
-
-.detail-value {
-  color: #111827;
-  font-size: 14px;
-  line-height: 1.7;
-}
-
-.detail-value--box {
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 12px;
-  white-space: pre-wrap; /* 改行を保持 */
-}
-
-.detail-empty {
-  color: #9ca3af;
-  font-size: 14px;
-}
-
-/* divider */
-.divider {
-  border: none;
-  border-top: 1px solid #eef2f7;
-  margin: 16px 0;
-}
-
-/* form */
-.section-title {
-  margin: 0 0 10px;
-  font-size: 15px;
-  color: #111827;
-}
-
-.form-block {
-  margin-top: 4px;
-}
-
-.form {
-  display: grid;
-  gap: 10px;
-}
-
-.textarea {
-  width: 100%;
-  border: 1px solid #d1d5db;
-  border-radius: 12px;
-  padding: 10px 12px;
-  font-size: 14px;
-  line-height: 1.7;
-  resize: vertical;
-  background: #fff;
-}
-
-.textarea:focus {
-  outline: none;
-  border-color: #4f46e5;
-}
-
-/* actions */
-.form-actions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-/* danger button */
-.button.danger {
-  background: #ef4444;
-  color: #fff;
-}
-
-.button.danger:hover {
-  opacity: 0.92;
-}
-
-/* =====================
-   Admin Header Layout
-===================== */
-
-.admin-header {
-  display: flex;
-  justify-content: space-between; 
-  align-items: center;
-  gap: 16px;
-}
-
-.admin-header_left {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.admin-header_right {
-  display: flex;
-  align-items: center;
-}
-
-
-/* =====================
-   Admin List Page (Inquiries)
-===================== */
-
-.filters {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin: 10px 0 14px;
-}
-
-.pill {
-  display: inline-flex;
-  align-items: center;
-  height: 34px;
-  padding: 0 12px;
-  border-radius: 999px;
-  border: 1px solid #e5e7eb;
-  background: #fff;
-  color: #111827;
-  text-decoration: none;
-  font-size: 13px;
-}
-
-.pill:hover {
-  background: #f9fafb;
-}
-
-.table-wrap {
-  padding: 10px;
-}
-
-/* narrow/align cols */
-.col-narrow { width: 70px; }
-.col-right { text-align: right; }
-.col-actions { width: 110px; }
-
-.button.small {
-  height: 34px;
-  padding: 0 12px;
-  border-radius: 10px;
-  font-size: 13px;
-}
-
-/* truncate subject */
-.truncate {
-  max-width: 340px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.page-actions--bottom {
-  margin: 24px 0 40px;
-  display: flex;
-  justify-content: flex-start;
-}
-
-/* =====================
-   Item List (Pokemon Type)
-===================== */
-
-.item-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
-  margin-top: 14px;
-}
-
-@media (max-width: 980px) {
-  .item-grid { grid-template-columns: repeat(3, 1fr); }
-}
-@media (max-width: 740px) {
-  .item-grid { grid-template-columns: repeat(2, 1fr); }
-}
-@media (max-width: 460px) {
-  .item-grid { grid-template-columns: 1fr; }
-}
-
-.item-card {
-  position: relative;
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 14px;
-  overflow: hidden;
-  box-shadow: 0 8px 18px rgba(0,0,0,0.06);
-  transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
-}
-
-.item-card a {
-  display: block;
-  color: inherit;
-  text-decoration: none;
-}
-
-.item-card img {
-  width: 100%;
-  height: 170px;
-  object-fit: cover;
-  display: block;
-  background: #f3f4f6;
-}
-
-.item-card h3 {
-  margin: 10px 12px 6px;
-  font-size: 14px;
-  line-height: 1.35;
-  min-height: 38px; /* 2行くらいの高さ確保 */
-}
-
-.item-card .price {
-  margin: 0 12px 12px;
-  font-size: 15px;
-  font-weight: 800;
-}
-
-/* タイプの“上ライン” */
-.item-card::before {
-  content: "";
-  position: absolute;
-  left: 0; top: 0;
-  width: 100%;
-  height: 4px;
-  background: var(--type, #e5e7eb);
-}
-
-/* バッジ（画像上に重ねる） */
-.type-badge {
-  position: absolute;
-  left: 10px;
-  top: 10px;
-  z-index: 2;
-
-  display: inline-flex;
-  align-items: center;
-  height: 28px;
-  padding: 0 10px;
-  border-radius: 999px;
-
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: .6px;
-
-  background: rgba(255,255,255,0.92);
-  border: 1px solid rgba(0,0,0,0.08);
-
-  /* タイプ色 */
-  color: var(--type, #111827);
-}
-
-/* ホバーで気持ちよく */
-.item-card:hover {
-  transform: translateY(-2px);
-  border-color: var(--type, #cbd5e1);
-  box-shadow: 0 12px 24px rgba(0,0,0,0.10);
-}
-
-/* =====================
-   Category Colors
-   (category-*** はHTML側の classappend と対応)
-===================== */
-
-/* デフォルト */
-.category-other  { --type: #64748b; } /* グレー */
-
-/* カテゴリ別 */
-.category-card   { --type: #3b82f6; } /* 青：カード */
-.category-supply { --type: #22c55e; } /* 緑：サプライ */
-.category-deck   { --type: #f97316; } /* オレンジ：デッキ・構築済み */
-
-/* =====================
-   Search Modal
-===================== */
-
-.search-head{
+.footer-nav a:hover{ text-decoration: underline; }
+
+/* =========================
+   TOOLBAR (detailの上など)
+========================= */
+.toolbar{
   display:flex;
+  justify-content:space-between;
   align-items:center;
   gap:12px;
+  margin:12px 0 10px;
+}
+.toolbar-left{ display:flex; gap:10px; align-items:center; }
+.toolbar-right{ margin-left:auto; }
+.toolbar-form{ margin:0; display:inline-flex; }
+
+/* =====================
+   BUTTONS (UNIFIED)
+   - 形を .button に集約
+   - 色は modifier で指定
+===================== */
+.button{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  height:44px;
+  padding:0 16px;
+  border-radius:12px;
+  border:1px solid transparent;
+  text-decoration:none;
+  cursor:pointer;
+  box-sizing: border-box;
+
+  font-size:14px;
+  font-weight:800;
+  letter-spacing:.2px;
+
+  transition:
+    background-color .15s ease,
+    color .15s ease,
+    border-color .15s ease,
+    box-shadow .15s ease,
+    transform .15s ease;
+}
+.button:hover{ transform: translateY(-1px); }
+.button:active{ transform: translateY(0); }
+
+/* Primary（購入/送信/出品する等） */
+.button--primary,
+.button.primary,
+.button:not(.secondary):not(.button--outline):not(.button--danger):not(.button--edit){
+  background: #38bdf8;
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(56,189,248,.30);
+}
+.button--primary:hover,
+.button.primary:hover,
+.button:not(.secondary):not(.button--outline):not(.button--danger):not(.button--edit):hover{
+  background:#0ea5e9;
+}
+
+/* Secondary（白） */
+.button.secondary{
+  background:#fff;
+  color:#111827;
+  border:1px solid #e5e7eb;
+  box-shadow:none;
+}
+.button.secondary:hover{ background:#f9fafb; }
+
+/* Outline（お気に入り等） */
+.button--outline{
+  background:#fff;
+  color:#111827;
+  border:1px solid #e5e7eb;
+  box-shadow:none;
+}
+.button--outline:hover{ background:#f9fafb; }
+
+/* Edit（編集） */
+.button--edit{
+  background:#fff;
+  color:#334155;
+  border:1px solid #cbd5e1;
+  box-shadow:none;
+}
+.button--edit:hover{ background:#f8fafc; }
+
+/* Danger（削除/解除） */
+.button--danger{
+  background:#f472b6;
+  color:#fff;
+  box-shadow: 0 8px 20px rgba(244,114,182,.35);
+}
+.button--danger:hover{ background:#ec4899; }
+.button--danger:active{ background:#db2777; }
+
+/* small */
+.button.small{
+  height:34px;
+  padding:0 12px;
+  border-radius:10px;
+  font-size:13px;
+  font-weight:700;
+}
+
+/* =====================
+   LOGIN PAGE
+===================== */
+.login-page{
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--bg);
+}
+
+.login-page .auth-card{
+  width: 100%;
+  max-width: 420px;
+  background: #fff;
+  padding: 32px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+.login-page h1{
+  text-align: center;
+  margin-bottom: 32px;
+}
+.login-page h2{
+  text-align: center;
+  font-size: 20px;
+  margin-bottom: 24px;
+}
+
+/* フォーム */
+.login-page form p{ margin-bottom: 16px; }
+
+.login-page label{
+  display: block;
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+
+.login-page input[type="text"],
+.login-page input[type="password"],
+.login-page input[type="email"]{
+  width: 100%;
+  box-sizing: border-box;
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.login-page input:focus{
+  outline: none;
+  border-color: #4f46e5;
+}
+
+.error-message{
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.success-message{
+  background: #dcfce7;
+  color: #166534;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.login-page .text-center{
+  text-align: center;
+  font-size: 13px;
+  margin-top: 12px;
+}
+.login-page .text-center a{
+  color: #4f46e5;
+  text-decoration: none;
+}
+
+/* ログイン画面のボタン配置 */
+.login-page .button-group{
+  display: flex;
+  justify-content: center;
+}
+.login-page .button{
+  width: 100%;
+  max-width: 240px;
+}
+
+/* =====================
+   AUTH: REGISTER COMPLETE (補助)
+===================== */
+.auth-card h2{
+  margin: 18px 0 14px;
+  font-size: 22px;
+  letter-spacing: .2px;
+  text-align: center;
+}
+.auth-text{
+  color: #374151;
+  font-size: 14px;
+  line-height: 1.75;
+  margin: 0 0 18px;
+}
+
+/* =====================
+   ADMIN DASHBOARD
+===================== */
+.admin-page h1{ margin-bottom: 8px; }
+.admin-page .container{ padding: 0 8px; }
+
+.admin-page p{
+  margin-top: 0;
+  margin-bottom: 16px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.main-nav{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 16px 0 24px;
+}
+
+.admin-section-title{
+  margin: 18px 0 10px;
+  font-size: 16px;
+  color: #111827;
+}
+
+/* table */
+table{
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+  margin-bottom: 22px;
+}
+thead th{
+  background: #f9fafb;
+  color: #374151;
+  font-size: 13px;
+  text-align: left;
+  padding: 12px 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
+tbody td{
+  padding: 12px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 14px;
+  color: #111827;
+}
+tbody tr:hover{ background: #fafafa; }
+tbody tr:last-child td{ border-bottom: none; }
+.table-empty{ color: #6b7280; text-align: center; }
+
+/* admin detail */
+.page-head{
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 16px 0 14px;
+}
+.page-title{ margin: 0 0 6px; }
+.page-sub{ margin: 0; color: #6b7280; font-size: 14px; }
+
+.detail-card{ padding: 14px 16px 18px; }
+.detail-grid{ display: grid; gap: 12px; }
+
+.detail-row{
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.detail-label{
+  color: #6b7280;
+  font-size: 13px;
+  padding-top: 2px;
+}
+
+.detail-value{
+  color: #111827;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.detail-value--box{
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px;
+  white-space: pre-wrap;
+}
+
+.detail-empty{ color: #9ca3af; font-size: 14px; }
+
+.divider{
+  border: none;
+  border-top: 1px solid #eef2f7;
+  margin: 16px 0;
+}
+
+.section-title{
+  margin: 0 0 10px;
+  font-size: 15px;
+  color: #111827;
+}
+
+.form-block{ margin-top: 4px; }
+
+.form{ display: grid; gap: 10px; }
+
+.textarea{
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 14px;
+  line-height: 1.7;
+  resize: vertical;
+  background: #fff;
+}
+.textarea:focus{
+  outline: none;
+  border-color: #4f46e5;
+}
+
+.form-actions{
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* admin header layout */
+.admin-header{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+.admin-header_left{
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.admin-header_right{
+  display: flex;
+  align-items: center;
+}
+
+/* admin list filters */
+.filters{
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 10px 0 14px;
+}
+.pill{
+  display: inline-flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #111827;
+  text-decoration: none;
+  font-size: 13px;
+}
+.pill:hover{ background: #f9fafb; }
+
+.table-wrap{ padding: 10px; }
+.col-narrow{ width: 70px; }
+.col-right{ text-align: right; }
+.col-actions{ width: 110px; }
+.truncate{
+  max-width: 340px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.page-actions--bottom{
+  margin: 24px 0 40px;
+  display: flex;
+  justify-content: flex-start;
+}
+
+/* =====================
+   ITEM LIST (GRID)
+===================== */
+.item-grid{
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-top: 14px;
+}
+@media (max-width: 980px){
+  .item-grid{ grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 740px){
+  .item-grid{ grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 460px){
+  .item-grid{ grid-template-columns: 1fr; }
+}
+
+.item-card{
+  position: relative;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow:
+    0 8px 18px rgba(0, 0, 0, 0.06),
+    0 0 0 1px rgba(0, 0, 0, 0.02);
+  transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+}
+.item-card a{
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+.item-card img{
+  width: 100%;
+  height: 170px;
+  object-fit: cover;
+  display: block;
+  background: #f3f4f6;
+}
+.item-card h3{
+  margin: 10px 12px 6px;
+  font-size: 14px;
+  line-height: 1.35;
+  min-height: 38px;
+}
+.item-card .price{
+  margin: 0 12px 12px;
+  font-size: 15px;
+  font-weight: 800;
+  border-top: 1px dashed #e5e7eb;
+  padding-top: 8px;
+}
+
+/* タイプの上ライン */
+.item-card::before{
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 4px;
+  background: var(--type, #e5e7eb);
+}
+
+/* バッジ */
+.type-badge{
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  z-index: 2;
+
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .6px;
+
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  color: var(--type, #111827);
+}
+.type-badge::before{
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--type);
+  margin-right: 6px;
+}
+
+.item-card:hover{
+  transform: translateY(-2px);
+  border-color: var(--type, #cbd5e1);
+  box-shadow:
+    0 12px 28px color-mix(in srgb, var(--type) 18%, transparent),
+    0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* category colors */
+.category-other{ --type: #64748b; }
+.category-card{ --type: #3b82f6; }
+.category-supply{ --type: #22c55e; }
+.category-deck{ --type: #f97316; }
+
+/* status */
+.status{
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  margin: 0 12px 12px;
+}
+.status.selling{
+  background: #ecfeff;
+  color: #0369a1;
+}
+
+/* =====================
+   SEARCH MODAL
+===================== */
+.search-head{
+  display: flex;
+  align-items: center;
+  gap: 12px;
   margin: 10px 0 14px;
 }
 .search-hint{
-  color:#6b7280;
-  font-size:13px;
+  color: #6b7280;
+  font-size: 13px;
 }
 
 .modal-backdrop{
@@ -1327,14 +787,14 @@ tbody tr:last-child td {
   backdrop-filter: blur(6px);
   z-index: 9999;
 }
-.modal-backdrop.is-open{ display:flex; }
+.modal-backdrop.is-open{ display: flex; }
 
 .modal-card{
   width: min(860px, 96vw);
-  background:#fff;
+  background: #fff;
   border-radius: 16px;
   border: 1px solid #e5e7eb;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.18);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18);
   overflow: hidden;
   transform: translateY(6px);
   opacity: 0;
@@ -1346,25 +806,26 @@ tbody tr:last-child td {
 }
 
 .modal-head{
-  display:flex;
-  align-items:center;
+  display: flex;
+  align-items: center;
   justify-content: space-between;
   padding: 14px 16px;
   background: #f9fafb;
   border-bottom: 1px solid #eef2f7;
 }
 .modal-title{
-  margin:0;
+  margin: 0;
   font-size: 16px;
   letter-spacing: .2px;
 }
+
 .modal-close{
   width: 36px;
   height: 36px;
   border-radius: 10px;
   border: 1px solid #e5e7eb;
-  background:#fff;
-  cursor:pointer;
+  background: #fff;
+  cursor: pointer;
   font-size: 20px;
   line-height: 1;
 }
@@ -1373,7 +834,7 @@ tbody tr:last-child td {
   padding: 14px 16px 16px;
 }
 .modal-form.filter-form{
-  display:grid;
+  display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 12px;
 }
@@ -1382,15 +843,15 @@ tbody tr:last-child td {
 }
 
 .modal-form label{
-  display:block;
+  display: block;
   font-size: 12px;
-  color:#6b7280;
+  color: #6b7280;
   margin-bottom: 6px;
 }
 
 .modal-form input,
 .modal-form select{
-  width:100%;
+  width: 100%;
   height: 40px;
   border: 1px solid #d1d5db;
   border-radius: 10px;
@@ -1400,71 +861,378 @@ tbody tr:last-child td {
 
 .modal-form input:focus,
 .modal-form select:focus{
-  outline:none;
-  border-color:#4f46e5;
+  outline: none;
+  border-color: #4f46e5;
 }
 
 .range{
-  display:flex;
-  align-items:center;
+  display: flex;
+  align-items: center;
   gap: 10px;
 }
 .range-sep{
-  color:#6b7280;
+  color: #6b7280;
   font-size: 13px;
 }
 
 .modal-actions{
   grid-column: 1 / -1;
-  display:flex;
-  justify-content:flex-end;
+  display: flex;
+  justify-content: flex-end;
   gap: 10px;
   margin-top: 8px;
   padding-top: 12px;
   border-top: 1px solid #eef2f7;
 }
 
-body.modal-lock{
+body.modal-lock{ overflow: hidden; }
+
+/* =====================
+   ITEM DETAIL (itemd)
+===================== */
+.itemd{ max-width: 1060px; }
+
+.itemd-head{
+  display: grid;
+  gap: 10px;
+  margin: 8px 0 16px;
+}
+.itemd-title{
+  margin: 0;
+  font-size: 26px;
+  letter-spacing: .2px;
+}
+.itemd-meta{
+  display:flex;
+  align-items:center;
+  gap: 8px;
+  color:#6b7280;
+  font-size: 13px;
+  margin-top: 6px;
+}
+.itemd-meta__value{ color:#111827; font-weight: 700; }
+.itemd-dot{ opacity:.6; }
+
+/* 詳細のstatus余白を殺す（共通status対策） */
+.itemd-meta .status{ margin: 0 !important; }
+
+.itemd-grid{
+  display:grid;
+  grid-template-columns: 1.5fr .9fr;
+  gap: 14px;
+}
+@media (max-width: 920px){
+  .itemd-grid{ grid-template-columns: 1fr; }
+}
+
+.itemd-card{
+  background:#fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+  padding: 14px 16px;
+}
+
+/* 右カラム sticky */
+.itemd-sidewrap{
+  position: sticky;
+  top: calc(var(--header-h) + 16px);
+  align-self: start;
+  display: grid;
+  gap: 14px;
+}
+@media (max-width: 920px){
+  .itemd-sidewrap{ position: static; }
+}
+
+/* price */
+.itemd-sideprice{
+  display:flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 10px;
+}
+.itemd-sideprice__label{ color:#6b7280; font-size: 13px; }
+.itemd-sideprice__value{ font-size: 22px; font-weight: 900; }
+
+.itemd-actions{ display:grid; gap: 10px; }
+.itemd-btn{ width: 100%; height: 44px; }
+
+/* gallery */
+.itemd-viewer{
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+.itemd-mainimg{
+  width: 100%;
+  height: min(520px, 56vh);
+  display: block;
+  object-fit: contain;
+  background: transparent;
+}
+.itemd-nav{
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,0.08);
+  background: rgba(255,255,255,0.92);
+  cursor: pointer;
+  font-size: 24px;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  user-select: none;
+}
+.itemd-nav--prev{ left: 12px; }
+.itemd-nav--next{ right: 12px; }
+.itemd-nav.is-disabled{ opacity: .35; pointer-events: none; }
+
+.itemd-thumbs{
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.itemd-thumb{
+  width: 96px;
+  height: 96px;
+  border-radius: 14px;
+  border: 2px solid transparent;
+  background: #f3f4f6;
+  object-fit: cover;
+  flex: 0 0 auto;
+  cursor: pointer;
+}
+.itemd-thumb.is-active{ border-color: #4f46e5; }
+
+/* headings */
+.itemd-h2{
+  margin: 0 0 10px;
+  font-size: 15px;
+  color:#111827;
+}
+
+/* rows */
+.itemd-rows{
+  border: 1px solid #eef2f7;
+  border-radius: 14px;
   overflow: hidden;
 }
-
-.item-card {
-  box-shadow:
-    0 8px 18px rgba(0,0,0,0.06),
-    0 0 0 1px rgba(0,0,0,0.02);
+.itemd-row{
+  display:flex;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 10px 12px;
+  border-top: 1px solid #eef2f7;
 }
+.itemd-row:first-child{ border-top: none; }
 
-.item-card:hover {
-  box-shadow:
-    0 12px 28px color-mix(in srgb, var(--type) 18%, transparent),
-    0 4px 12px rgba(0,0,0,0.08);
+.itemd-row__label{
+  color:#6b7280;
+  font-size: 13px;
+  min-width: 140px;
 }
-
-.type-badge::before {
-  content: "";
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--type);
-  margin-right: 6px;
-}
-
-.item-card .price {
-  border-top: 1px dashed #e5e7eb;
-  padding-top: 8px;
-}
-
-.status {
-  display: inline-block;
-  margin: 0 12px 12px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 12px;
+.itemd-row__value{
+  color:#111827;
+  font-size: 14px;
   font-weight: 700;
+  text-align: right;
 }
 
-.status.selling {
-  background: #ecfeff;
-  color: #0369a1;
+/* desc */
+.itemd-desc{
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid #eef2f7;
+  border-radius: 14px;
+}
+.itemd-desc__label{ color:#6b7280; font-size: 13px; margin-bottom: 6px; }
+.itemd-desc__text{
+  color:#111827;
+  font-size: 14px;
+  line-height: 1.75;
+  white-space: pre-wrap;
 }
 
+/* chat */
+.itemd-chatbox{
+  border: 1px solid #eef2f7;
+  border-radius: 14px;
+  padding: 12px;
+  background: #fff;
+  max-height: min(420px, 45vh);
+  overflow: auto;
+}
+
+.itemd-chatmsg{
+  position: relative;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid #eef2f7;
+  background: #ffffff;
+  margin-bottom: 12px;
+}
+.itemd-chatmsg::before{
+  content:"";
+  position:absolute;
+  left: 10px;
+  right: 10px;
+  top: 0;
+  height: 3px;
+  border-radius: 999px;
+  background: #e5e7eb;
+}
+.itemd-chatmsg.is-seller::before{ background: #818cf8; }
+.itemd-chatmsg.is-other::before{ background: #38bdf8; }
+.itemd-chatmsg.is-me{
+  background: #eef2ff;
+  border-color: #e0e7ff;
+}
+
+.itemd-chatmeta{
+  display:flex;
+  justify-content: space-between;
+  align-items:center;
+  gap: 10px;
+  margin-bottom: 6px;
+  font-size: 12px;
+  color: #6b7280;
+}
+.itemd-chatname{ font-weight: 800; color: #111827; }
+.itemd-chattime{ font-size: 11px; }
+
+.itemd-chattext{
+  margin: 0;
+  color:#111827;
+  font-size: 13px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.itemd-chatform{
+  margin-top: 10px;
+  display:grid;
+  gap: 10px;
+}
+.itemd-chatform textarea{
+  width: 100%;
+  min-height: 90px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid #d1d5db;
+  resize: vertical;
+  box-sizing: border-box;
+}
+.itemd-chatform textarea:focus{
+  outline: none;
+  border-color: #4f46e5;
+}
+
+/* =========================
+   ITEM FORM (出品 / 編集)
+========================= */
+.item-form{
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.item-form h1{
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 24px;
+}
+
+.form-section{
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.form-section + .form-section{ margin-top: 24px; }
+
+.form-section-title{
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.form-group{
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.form-group:last-child{ margin-bottom: 0; }
+
+.form-label{
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+}
+.form-help{
+  font-size: 12px;
+  color: #6b7280;
+}
+
+input[type="text"],
+input[type="number"],
+select,
+textarea{
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  font-size: 14px;
+  background: #fff;
+}
+textarea{
+  resize: vertical;
+  min-height: 100px;
+}
+
+input:focus,
+select:focus,
+textarea:focus{
+  outline: none;
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(56,189,248,.15);
+}
+
+input[type="file"]{ font-size: 13px; }
+
+.item-image-preview{
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+.item-image-preview img{
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+#cardSection{
+  margin-top: 20px;
+  padding: 16px;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px dashed #bae6fd;
+}
+
+.button-group{
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 28px;
+}

@@ -9,7 +9,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
 @Entity
@@ -21,23 +20,20 @@ public class OrderMessage {
 	private Long id;
 
 	@ManyToOne(optional = false, fetch = FetchType.LAZY)
+	@jakarta.persistence.JoinColumn(name = "order_id", nullable = false)
 	private AppOrder order;
 
 	@ManyToOne(optional = false, fetch = FetchType.LAZY)
+	@jakarta.persistence.JoinColumn(name = "sender_id", nullable = false)
 	private User sender;
 
-	@Column(nullable = false, length = 2000)
+	@Column(nullable = false, columnDefinition = "TEXT")
 	private String message;
 
-	@Column(nullable = false)
+	// DBの created_at と一致させる
+	@Column(name = "created_at", insertable = false, updatable = false)
 	private LocalDateTime createdAt;
 
-	@PrePersist
-	void onCreate() {
-		this.createdAt = LocalDateTime.now();
-	}
-
-	// --- getter/setter ---
 	public Long getId() {
 		return id;
 	}

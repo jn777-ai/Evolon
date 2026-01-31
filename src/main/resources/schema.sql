@@ -113,6 +113,12 @@ CREATE TABLE app_order (
     shipped_at TIMESTAMP,
     delivered_at TIMESTAMP,
 
+    shipping_postal_code VARCHAR(20),
+    shipping_address     VARCHAR(255),
+    shipping_last_name   VARCHAR(100),
+    shipping_first_name  VARCHAR(100),
+
+
     FOREIGN KEY (item_id) REFERENCES item(id) ON DELETE CASCADE,
     FOREIGN KEY (buyer_id) REFERENCES users(id)
 );

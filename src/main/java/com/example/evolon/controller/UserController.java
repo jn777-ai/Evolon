@@ -15,6 +15,8 @@ import com.example.evolon.form.ProfileEditForm;
 import com.example.evolon.service.AppOrderService;
 import com.example.evolon.service.FavoriteService;
 import com.example.evolon.service.ItemService;
+import com.example.evolon.service.ReviewService;
+import com.example.evolon.service.ReviewStatsService;
 import com.example.evolon.service.UserService;
 
 @Controller
@@ -26,16 +28,23 @@ public class UserController {
 	private final AppOrderService appOrderService;
 	private final FavoriteService favoriteService;
 
+	private final ReviewService reviewService;
+	private final ReviewStatsService reviewStatsService;
+
 	public UserController(
 			UserService userService,
 			ItemService itemService,
 			AppOrderService appOrderService,
-			FavoriteService favoriteService) {
+			FavoriteService favoriteService,
+			ReviewService reviewService,
+			ReviewStatsService reviewStatsService) {
 
 		this.userService = userService;
 		this.itemService = itemService;
 		this.appOrderService = appOrderService;
 		this.favoriteService = favoriteService;
+		this.reviewService = reviewService;
+		this.reviewStatsService = reviewStatsService;
 	}
 
 	/* =====================
@@ -57,6 +66,10 @@ public class UserController {
 		// 出品中プレビュー用
 		model.addAttribute("items",
 				itemService.getItemsBySeller(user));
+
+		// ✅ 公開対象だけの評価サマリ（2者評価が揃った分だけ）
+		model.addAttribute("reviewStats",
+				reviewStatsService.getStats(user));
 
 		return "my_page";
 	}
@@ -99,23 +112,17 @@ public class UserController {
 
 		User user = getLoginUser(userDetails);
 
-		// nickname未入力だと表示名が空になる事故防止（最低限の保険）
 		if (isBlank(profileEditForm.getNickname())) {
 			profileEditForm.setNickname(user.getName());
 		}
 
 		userService.updateProfile(user, profileEditForm);
-
 		ra.addFlashAttribute("successMessage", "プロフィールを更新しました");
 
 		if (!isBlank(returnTo)) {
 			return "redirect:" + returnTo;
 		}
 		return "redirect:/my-page";
-	}
-
-	private boolean isBlank(String s) {
-		return s == null || s.trim().isEmpty();
 	}
 
 	/* =====================
@@ -187,23 +194,50 @@ public class UserController {
 	}
 
 	/* =====================
-	 * 自分のレビュー（レビュー機能OFFのため一旦停止）
+	 * ✅ 評価一覧（公開対象だけ）
 	 * ===================== */
 	@GetMapping("/reviews")
 	public String myReviews(
 			@AuthenticationPrincipal UserDetails userDetails,
 			Model model) {
 
-		// 一旦レビュー機能を外す
-		// 必要ならフラッシュメッセージや「準備中」表示に変える
-		return "redirect:/my-page";
+		User user = getLoginUser(userDetails);
+
+		model.addAttribute("user", user);
+		model.addAttribute("reviewStats", reviewStatsService.getStats(user));
+
+		// ✅ 2者評価が揃った分だけ表示
+		model.addAttribute("reviews", reviewService.findVisibleReviewsForUser(user));
+
+		return "my_reviews";
 	}
 
 	/* =====================
-	 * 共通：ログインユーザ取得
+	 * アカウント管理（ハブ）
+	 * ===================== */
+	@GetMapping("/account")
+	public String accountHub(
+			@AuthenticationPrincipal UserDetails userDetails,
+			Model model) {
+
+		User user = getLoginUser(userDetails);
+		model.addAttribute("user", user);
+
+		return "account_hub";
+	}
+
+	/* =====================
+	 * 共通
 	 * ===================== */
 	private User getLoginUser(UserDetails userDetails) {
+		if (userDetails == null) {
+			throw new RuntimeException("UserDetails is null (not logged in)");
+		}
 		return userService.getUserByEmail(userDetails.getUsername())
 				.orElseThrow(() -> new RuntimeException("User not found"));
+	}
+
+	private boolean isBlank(String s) {
+		return s == null || s.trim().isEmpty();
 	}
 }
