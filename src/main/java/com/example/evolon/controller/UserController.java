@@ -56,22 +56,36 @@ public class UserController {
 			Model model) {
 
 		User user = getLoginUser(userDetails);
-
 		model.addAttribute("user", user);
 
 		// 最近の購入履歴
 		model.addAttribute("orders",
 				appOrderService.findPurchasedOrdersByBuyer(user));
 
-		// 出品中プレビュー用
+		// 出品中プレビュー用（一覧表示）
 		model.addAttribute("items",
 				itemService.getItemsBySeller(user));
 
-		// ✅ 公開対象だけの評価サマリ（2者評価が揃った分だけ）
+		// 公開対象だけの評価サマリ
 		model.addAttribute("reviewStats",
 				reviewStatsService.getStats(user));
 
-		return "my_page";
+		//  購入者サマリ
+		model.addAttribute("buyerTradingCount",
+				appOrderService.countTradingByBuyer(user));
+
+		model.addAttribute("buyerCompletedCount",
+				appOrderService.countCompletedByBuyer(user));
+
+		// =========================
+		//  サマリ数字
+		// =========================
+		model.addAttribute("sellingCount", itemService.countSellingBySeller(user)); // 出品中
+		model.addAttribute("tradingCount", itemService.countTradingBySeller(user)); // 取引中（なければ0でOK）
+		model.addAttribute("soldCount", itemService.countSoldBySeller(user)); // 取引完了
+		model.addAttribute("favoriteCount", favoriteService.countFavoritesByUser(user)); // お気に入り
+
+		return "pages/mypage/my_page";
 	}
 
 	/* =====================
@@ -97,7 +111,7 @@ public class UserController {
 		model.addAttribute("profileEditForm", form);
 		model.addAttribute("returnTo", returnTo);
 
-		return "profile_edit";
+		return "pages/mypage/profile_edit";
 	}
 
 	/* =====================
@@ -139,7 +153,7 @@ public class UserController {
 				"myOrders",
 				appOrderService.findPurchasedOrdersByBuyer(user));
 
-		return "buyer_app_orders";
+		return "pages/mypage/buyer_app_orders";
 	}
 
 	/* =====================
@@ -156,7 +170,7 @@ public class UserController {
 				"mySales",
 				appOrderService.findOrdersBySeller(user));
 
-		return "seller_app_orders";
+		return "pages/mypage/seller_app_orders";
 	}
 
 	/* =====================
@@ -173,7 +187,7 @@ public class UserController {
 				"items",
 				itemService.getItemsBySeller(user));
 
-		return "seller_items";
+		return "pages/mypage/seller_items";
 	}
 
 	/* =====================
@@ -190,11 +204,11 @@ public class UserController {
 				"favoriteItems",
 				favoriteService.getFavoriteItemsByUser(user));
 
-		return "my_favorites";
+		return "pages/mypage/my_favorites";
 	}
 
 	/* =====================
-	 * ✅ 評価一覧（公開対象だけ）
+	 * 評価一覧（公開対象だけ）
 	 * ===================== */
 	@GetMapping("/reviews")
 	public String myReviews(
@@ -205,11 +219,9 @@ public class UserController {
 
 		model.addAttribute("user", user);
 		model.addAttribute("reviewStats", reviewStatsService.getStats(user));
-
-		// ✅ 2者評価が揃った分だけ表示
 		model.addAttribute("reviews", reviewService.findVisibleReviewsForUser(user));
 
-		return "my_reviews";
+		return "pages/mypage/my_reviews";
 	}
 
 	/* =====================
@@ -223,7 +235,7 @@ public class UserController {
 		User user = getLoginUser(userDetails);
 		model.addAttribute("user", user);
 
-		return "account_hub";
+		return "pages/mypage/account_hub";
 	}
 
 	/* =====================
@@ -240,4 +252,5 @@ public class UserController {
 	private boolean isBlank(String s) {
 		return s == null || s.trim().isEmpty();
 	}
+
 }

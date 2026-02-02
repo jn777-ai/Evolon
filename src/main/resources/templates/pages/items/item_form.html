@@ -13,8 +13,12 @@
 <div class="container">
   <h1 th:text="${item.id == null ? '商品出品' : '商品編集'}"></h1>
 
+  <!-- =========================
+       更新/出品フォーム
+  ========================== -->
   <form th:action="${item.id == null ? '/items' : '/items/' + item.id}"
         method="post" enctype="multipart/form-data">
+
     <input type="hidden" th:if="${item.id != null}" name="_method" value="put">
 
     <!-- =========================
@@ -27,7 +31,7 @@
       <input type="text" id="name" name="name" th:value="${item.name}" required>
     </p>
 
-    <!--  カテゴリ（商品名の直下に移動） -->
+    <!-- カテゴリ -->
     <p>
       <label for="categoryId">カテゴリ:</label>
       <select id="categoryId" name="categoryId" required>
@@ -124,8 +128,6 @@
 
     <!-- =========================
          カード関連（カード選択時のみ表示）
-         ・OCR画像
-         ・カード詳細入力
     ========================== -->
 
     <div id="cardSection" style="display:none;">
@@ -197,17 +199,50 @@
     <!-- =========================
          ボタン
     ========================== -->
+	<div class="button-group">
 
-    <div class="button-group">
-      <button type="submit" class="button primary"
-              th:text="${item.id == null ? '出品する' : '更新する'}"></button>
-      <a th:href="@{/items}" class="button secondary">キャンセル</a>
-    </div>
+	  <!-- 左：削除（編集時のみ） -->
+	  <button th:if="${item.id != null}"
+	          type="submit"
+	          class="button danger"
+	          form="deleteForm"
+	          onclick="return confirm('本当にこの商品を削除しますか？この操作は取り消せません。');">
+	    削除する
+	  </button>
 
+	  <!-- 右：更新 → キャンセル -->
+	  <div class="button-right">
+	    <button type="submit" class="button primary"
+	            th:text="${item.id == null ? '出品する' : '更新する'}"></button>
+	    <a th:href="@{/items}" class="button secondary">キャンセル</a>
+	  </div>
+
+	</div>
+
+  <!-- =========================
+       削除用フォーム（外側formの外に置く）
+       ※ form 入れ子禁止対策
+  ========================== -->
+  <form th:if="${item.id != null}"
+        th:action="@{/items/{id}(id=${item.id})}"
+        method="post"
+        id="deleteForm"
+        style="display:none;">
+    <input type="hidden" name="_method" value="delete">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
   </form>
+
 </div>
 
 <script>
+/* =========================
+   削除ボタン送信
+========================= */
+function submitDelete() {
+  if (!confirm('本当にこの商品を削除しますか？この操作は取り消せません。')) return;
+  document.getElementById('deleteForm')?.submit();
+}
+
 /* =========================
    商品画像の制限
 ========================= */
@@ -238,10 +273,8 @@ function toggleCardFields() {
 
   const isCard = (selectedText === 'カード');
 
-  // カード関連まとめて表示/非表示
   cardSection.style.display = isCard ? 'block' : 'none';
 
-  // required 切り替え
   ['cardName', 'packName', 'rarity', 'condition', 'regulation']
     .forEach(id => {
       const el = document.getElementById(id);
@@ -250,7 +283,6 @@ function toggleCardFields() {
       if (!isCard) el.value = '';
     });
 
-  // OCR画像もリセット
   const cardImage = document.getElementById('cardImage');
   if (cardImage && !isCard) cardImage.value = '';
 }
@@ -282,7 +314,6 @@ async function doOcrAndFill(file) {
   }
 }
 
-// OCR画像変更時（カードカテゴリのみ）
 document.getElementById('cardImage')?.addEventListener('change', e => {
   const categorySelect = document.getElementById('categoryId');
   const text = categorySelect?.options[categorySelect.selectedIndex]?.text;
@@ -291,7 +322,6 @@ document.getElementById('cardImage')?.addEventListener('change', e => {
   doOcrAndFill(e.target.files?.[0]);
 });
 
-// カード番号手動 → 自動入力
 document.getElementById('autoFillBtn')?.addEventListener('click', async () => {
   const text = document.getElementById('cardNumberText')?.value?.trim();
   if (!text) return alert('カード番号を入力してください');

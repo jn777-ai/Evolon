@@ -25,4 +25,6 @@ public interface FavoriteItemRepository extends JpaRepository<FavoriteItem, Long
 
 	//既にお気に入り済みか存在チェック（二重登録防止用）
 	boolean existsByUserAndItem(User user, Item item);
+
+	long countByUser(User user);
 }

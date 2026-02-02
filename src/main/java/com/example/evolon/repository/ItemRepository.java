@@ -18,6 +18,8 @@ import com.example.evolon.entity.User;
 
 public interface ItemRepository extends JpaRepository<Item, Long> {
 
+	long countBySellerAndStatus(User seller, ItemStatus status);
+
 	/* =========================
 	 * 公開中（出品中）検索
 	 * ========================= */
@@ -27,22 +29,22 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
 
 	// 名前 + ステータス複数
 	Page<Item> findByNameContainingIgnoreCaseAndStatusIn(
-	        String name,
-	        List<ItemStatus> statuses,
-	        Pageable pageable);
+			String name,
+			List<ItemStatus> statuses,
+			Pageable pageable);
 
 	// カテゴリ + ステータス複数
 	Page<Item> findByCategory_IdAndStatusIn(
-	        Long categoryId,
-	        List<ItemStatus> statuses,
-	        Pageable pageable);
+			Long categoryId,
+			List<ItemStatus> statuses,
+			Pageable pageable);
 
 	// 名前 + カテゴリ + ステータス複数
 	Page<Item> findByNameContainingIgnoreCaseAndCategory_IdAndStatusIn(
-	        String name,
-	        Long categoryId,
-	        List<ItemStatus> statuses,
-	        Pageable pageable);
+			String name,
+			Long categoryId,
+			List<ItemStatus> statuses,
+			Pageable pageable);
 
 	/* =========================
 	 * ★ カード条件検索（null は条件に入れない）
@@ -53,30 +55,28 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
 	 *   実質 cardInfo がある商品がヒットする
 	 * ========================= */
 	@Query("""
-		    SELECT i
-		    FROM Item i
-		    LEFT JOIN i.cardInfo ci
-		    WHERE i.status IN :statuses
-		      AND (:cardName IS NULL OR ci.cardName LIKE %:cardName%)
-		      AND (:rarity IS NULL OR ci.rarity = :rarity)
-		      AND (:regulation IS NULL OR ci.regulation = :regulation)
-		      AND (:condition IS NULL OR ci.condition = :condition)
-		      AND (:packName IS NULL OR ci.packName LIKE %:packName%)
-		      AND (:minPrice IS NULL OR i.price >= :minPrice)
-		      AND (:maxPrice IS NULL OR i.price <= :maxPrice)
-		""")
-		Page<Item> searchByCardFilters(
-		    @Param("statuses") List<ItemStatus> statuses,
-		    @Param("cardName") String cardName,
-		    @Param("rarity") Rarity rarity,
-		    @Param("regulation") Regulation regulation,
-		    @Param("condition") CardCondition condition,
-		    @Param("packName") String packName,
-		    @Param("minPrice") BigDecimal minPrice,
-		    @Param("maxPrice") BigDecimal maxPrice,
-		    Pageable pageable);
-
-
+			    SELECT i
+			    FROM Item i
+			    LEFT JOIN i.cardInfo ci
+			    WHERE i.status IN :statuses
+			      AND (:cardName IS NULL OR ci.cardName LIKE %:cardName%)
+			      AND (:rarity IS NULL OR ci.rarity = :rarity)
+			      AND (:regulation IS NULL OR ci.regulation = :regulation)
+			      AND (:condition IS NULL OR ci.condition = :condition)
+			      AND (:packName IS NULL OR ci.packName LIKE %:packName%)
+			      AND (:minPrice IS NULL OR i.price >= :minPrice)
+			      AND (:maxPrice IS NULL OR i.price <= :maxPrice)
+			""")
+	Page<Item> searchByCardFilters(
+			@Param("statuses") List<ItemStatus> statuses,
+			@Param("cardName") String cardName,
+			@Param("rarity") Rarity rarity,
+			@Param("regulation") Regulation regulation,
+			@Param("condition") CardCondition condition,
+			@Param("packName") String packName,
+			@Param("minPrice") BigDecimal minPrice,
+			@Param("maxPrice") BigDecimal maxPrice,
+			Pageable pageable);
 
 	/* =========================
 	 * 出品者

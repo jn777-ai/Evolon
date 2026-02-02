@@ -1,0 +1,162 @@
+<th:block xmlns:th="http://www.thymeleaf.org"
+          th:replace="~{layout/layout :: layout(
+            title='Evolon-マイページ',
+            content=~{::content},
+            showHeader=true,
+            showFooter=true
+          )}">
+
+  <th:block th:fragment="content">
+
+    <div class="my-page">
+
+      <!-- ===== Page Head ===== -->
+      <header class="my-page-head">
+        <a href="/" class="back-to-top">← TOPへ戻る</a>
+      </header>
+
+      <!-- ===== Menu Cards ===== -->
+      <section class="my-page-menu cards">
+        <a th:href="@{/my-page/orders}" class="menu-card">
+          <div class="menu-card__title">購入一覧</div>
+          <div class="menu-card__desc">購入した商品を見る</div>
+        </a>
+
+        <a th:href="@{/my-page/selling}" class="menu-card">
+          <div class="menu-card__title">出品一覧</div>
+          <div class="menu-card__desc">出品中の商品</div>
+        </a>
+
+        <a th:href="@{/my-page/sales}" class="menu-card">
+          <div class="menu-card__title">販売履歴</div>
+          <div class="menu-card__desc">売れた商品</div>
+        </a>
+
+        <a th:href="@{/my-page/account}" class="menu-card is-accent">
+          <div class="menu-card__title">アカウント管理</div>
+          <div class="menu-card__desc">プロフィール・設定</div>
+        </a>
+      </section>
+
+      <!-- ===== Mid Grid (Rating + Status) ===== -->
+      <section class="my-page-grid">
+
+        <!-- Rating Card -->
+        <section class="panel my-page-review">
+          <div class="panel-head">
+            <h2 class="panel-title">評価</h2>
+            <span class="chip" th:text="${reviewStats.reviewCount} + '件'">0件</span>
+          </div>
+
+          <div th:if="${reviewStats.reviewCount > 0}" class="rating-row">
+            <div class="star-rating" th:style="'--rating:' + ${reviewStats.avgRating}">
+              <span class="stars">★★★★★</span>
+              <span class="stars filled">★★★★★</span>
+            </div>
+
+            <div class="rating-score">
+              <span th:text="${#numbers.formatDecimal(reviewStats.avgRating,1,1)}">5.0</span>
+              <span class="muted">/ 5.0</span>
+            </div>
+          </div>
+
+          <p th:if="${reviewStats.reviewCount == 0}" class="muted">
+            まだ評価はありません
+          </p>
+
+          <div class="panel-actions">
+            <a th:href="@{/my-page/reviews}" class="button secondary">評価一覧を見る</a>
+          </div>
+        </section>
+
+        <!-- Status Summary Card -->
+        <section class="panel my-page-status">
+          <div class="panel-head">
+            <h2 class="panel-title">ステータス</h2>
+            <span class="chip">サマリー</span>
+          </div>
+
+          <!-- ===== 出品者サマリ ===== -->
+          <div class="status-subhead">出品（売る）</div>
+          <div class="status-grid status-grid--three">
+            <div class="status-card">
+              <div class="status-label">出品中</div>
+              <div class="status-value" th:text="${sellingCount != null ? sellingCount : '—'}">—</div>
+            </div>
+            <div class="status-card">
+              <div class="status-label">取引中</div>
+              <div class="status-value" th:text="${tradingCount != null ? tradingCount : '—'}">—</div>
+            </div>
+            <div class="status-card">
+              <div class="status-label">取引完了</div>
+              <div class="status-value" th:text="${soldCount != null ? soldCount : '—'}">—</div>
+            </div>
+          </div>
+
+          <!-- ===== 購入者サマリ ===== -->
+          <div class="status-subhead" style="margin-top:12px;">購入（買う）</div>
+          <div class="status-grid status-grid--three">
+            <div class="status-card">
+              <div class="status-label">取引中</div>
+              <div class="status-value" th:text="${buyerTradingCount != null ? buyerTradingCount : '—'}">—</div>
+            </div>
+            <div class="status-card">
+              <div class="status-label">取引完了</div>
+              <div class="status-value" th:text="${buyerCompletedCount != null ? buyerCompletedCount : '—'}">—</div>
+            </div>
+            <div class="status-card">
+              <div class="status-label">お気に入り</div>
+              <div class="status-value" th:text="${favoriteCount != null ? favoriteCount : '—'}">—</div>
+            </div>
+          </div>
+
+          <div class="panel-actions">
+            <a th:href="@{/my-page/selling}" class="button secondary">出品一覧へ</a>
+            <a th:href="@{/my-page/orders}" class="button secondary">購入一覧へ</a>
+            <a th:href="@{/my-page/favorites}" class="button secondary">お気に入り</a>
+          </div>
+        </section>
+
+      </section>
+
+      <!-- ===== Selling Table ===== -->
+      <section class="panel my-page-items">
+        <div class="panel-head">
+          <h2 class="panel-title">出品中の商品</h2>
+          <a th:href="@{/my-page/selling}" class="panel-link">出品一覧へ</a>
+        </div>
+
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>商品名</th>
+                <th class="col-price">価格</th>
+                <th class="col-status">ステータス</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr th:each="item : ${items}">
+                <td class="cell-title" th:text="${item.name}">商品名</td>
+                <td class="col-price"
+                    th:text="'¥' + ${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT')}">¥0</td>
+                <td class="col-status">
+                  <span class="status-pill"
+                        th:classappend="${item.status.name() eq 'SOLD' ? ' is-sold' : ' is-selling'}"
+                        th:text="${item.status.label}">出品中</span>
+                </td>
+              </tr>
+
+              <tr th:if="${#lists.isEmpty(items)}">
+                <td colspan="3" class="empty-row">出品中の商品はありません。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </div>
+
+  </th:block>
+</th:block>

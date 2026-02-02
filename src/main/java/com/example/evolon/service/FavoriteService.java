@@ -112,5 +112,14 @@ public class FavoriteService {
 		return favoriteItemRepository.findByUser(user).stream()
 				.map(FavoriteItem::getItem)
 				.collect(Collectors.toList());
+
 	}
+
+	/**
+	 * ユーザのお気に入り数を返す（マイページ用サマリ）
+	 */
+	public long countFavoritesByUser(User user) {
+		return favoriteItemRepository.countByUser(user);
+	}
+
 }

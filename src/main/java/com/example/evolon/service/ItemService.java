@@ -229,4 +229,20 @@ public class ItemService {
 	private boolean hasText(String value) {
 		return value != null && !value.isBlank();
 	}
+
+	// 出品中
+	public long countSellingBySeller(User user) {
+		return itemRepository.countBySellerAndStatus(user, ItemStatus.SELLING);
+	}
+
+	// 取引中（決済済み〜発送待ち相当）
+	public long countTradingBySeller(User user) {
+		return itemRepository.countBySellerAndStatus(user, ItemStatus.PAYMENT_DONE);
+	}
+
+	// 取引完了
+	public long countSoldBySeller(User user) {
+		return itemRepository.countBySellerAndStatus(user, ItemStatus.SOLD);
+	}
+
 }

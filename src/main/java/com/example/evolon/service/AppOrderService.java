@@ -103,7 +103,7 @@ public class AppOrderService {
 		}
 
 		order.completePurchase();
-		itemService.markAsSold(order.getItem().getId());
+		itemService.markAsPaymentDone(order.getItem().getId());
 		notifySellerPurchased(order);
 
 		return order;
@@ -268,4 +268,15 @@ public class AppOrderService {
 					"商品が発送されました：" + order.getItem().getName());
 		}
 	}
+
+	public long countTradingByBuyer(User buyer) {
+		return appOrderRepository.countByBuyerAndOrderStatusIn(
+				buyer,
+				List.of(OrderStatus.PURCHASED, OrderStatus.SHIPPED, OrderStatus.DELIVERED));
+	}
+
+	public long countCompletedByBuyer(User buyer) {
+		return appOrderRepository.countByBuyerAndOrderStatus(buyer, OrderStatus.COMPLETED);
+	}
+
 }

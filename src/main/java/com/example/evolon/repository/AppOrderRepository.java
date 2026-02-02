@@ -28,4 +28,9 @@ public interface AppOrderRepository extends JpaRepository<AppOrder, Long> {
 	List<AppOrder> findTop5ByOrderByCreatedAtDesc();
 
 	List<AppOrder> findByBuyerAndOrderStatusIn(User buyer, List<OrderStatus> statuses);
+
+	long countByBuyerAndOrderStatusIn(User buyer, List<OrderStatus> statuses);
+
+	long countByBuyerAndOrderStatus(User buyer, OrderStatus status);
+
 }
