@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 import com.example.evolon.domain.enums.CardCondition;
 import com.example.evolon.domain.enums.Rarity;
@@ -22,6 +23,7 @@ import com.example.evolon.repository.CardInfoRepository;
 import com.example.evolon.repository.ItemRepository;
 import com.example.evolon.repository.UserRepository;
 
+@Profile("dev")
 @Configuration
 public class InitItemRunner {
 

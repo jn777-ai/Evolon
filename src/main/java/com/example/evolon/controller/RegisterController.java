@@ -59,6 +59,7 @@ public class RegisterController {
 		user.setEnabled(true);
 
 		userRepository.save(user);
+		System.out.println("★ registerUser called: " + email);
 
 		// ④ 完了画面へ
 		return "redirect:/register/complete";

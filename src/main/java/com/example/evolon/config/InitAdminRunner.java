@@ -3,11 +3,14 @@ package com.example.evolon.config;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.example.evolon.entity.User;
 import com.example.evolon.repository.UserRepository;
+
+@Profile("dev")
 
 @Configuration
 public class InitAdminRunner {

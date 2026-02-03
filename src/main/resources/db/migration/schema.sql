@@ -1,16 +1,5 @@
--- ========== CLEAN DROP (依存順) ==========
-DROP TABLE IF EXISTS chat CASCADE;
-DROP TABLE IF EXISTS favorite_item CASCADE;
-DROP TABLE IF EXISTS review CASCADE;
-DROP TABLE IF EXISTS app_order CASCADE;
-DROP TABLE IF EXISTS card_info CASCADE;
-DROP TABLE IF EXISTS item CASCADE;
-DROP TABLE IF EXISTS category CASCADE;
-DROP TABLE IF EXISTS review_stats CASCADE;
-DROP TABLE IF EXISTS user_complaint CASCADE;
-DROP TABLE IF EXISTS inquiry CASCADE;
-DROP TABLE IF EXISTS users CASCADE;
-DROP TABLE IF EXISTS card_master CASCADE;
+-- V1__init.sql
+-- 初期スキーマ（Flyway用）
 
 -- ========== USERS ==========
 CREATE TABLE users (
@@ -19,7 +8,7 @@ CREATE TABLE users (
     email VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     role VARCHAR(20) NOT NULL,
-    line_notify_token VARCHAR(255),
+
     enabled BOOLEAN NOT NULL DEFAULT TRUE,
     banned BOOLEAN NOT NULL DEFAULT FALSE,
     ban_reason TEXT,
@@ -37,7 +26,6 @@ CREATE TABLE users (
     address TEXT,
     bio VARCHAR(500)
 );
-
 
 -- ========== CATEGORY ==========
 CREATE TABLE category (
@@ -59,13 +47,14 @@ CREATE TABLE item (
     status VARCHAR(20) NOT NULL DEFAULT 'SELLING',
 
     image_url TEXT,
-	image_url2 TEXT,
-  	image_url3 TEXT,
-  	image_url4 TEXT,
-  	image_url5 TEXT,
-	image_url6 TEXT,
-	image_url7 TEXT,
-	image_url8 TEXT,
+    image_url2 TEXT,
+    image_url3 TEXT,
+    image_url4 TEXT,
+    image_url5 TEXT,
+    image_url6 TEXT,
+    image_url7 TEXT,
+    image_url8 TEXT,
+
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
@@ -117,7 +106,6 @@ CREATE TABLE app_order (
     shipping_address     VARCHAR(255),
     shipping_last_name   VARCHAR(100),
     shipping_first_name  VARCHAR(100),
-
 
     FOREIGN KEY (item_id) REFERENCES item(id) ON DELETE CASCADE,
     FOREIGN KEY (buyer_id) REFERENCES users(id)
@@ -211,7 +199,8 @@ CREATE TABLE inquiry (
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
-CREATE TABLE  card_master (
+-- ========== CARD MASTER ==========
+CREATE TABLE card_master (
     id SERIAL PRIMARY KEY,
     set_code VARCHAR(20) NOT NULL,
     card_number VARCHAR(20) NOT NULL,
@@ -223,20 +212,39 @@ CREATE TABLE  card_master (
     UNIQUE (set_code, card_number)
 );
 
-
-
 -- ========== INDEX ==========
+-- item
 CREATE INDEX idx_item_user_id ON item(user_id);
 CREATE INDEX idx_item_category_id ON item(category_id);
 
+-- card_info
+CREATE INDEX idx_card_info_item_id ON card_info(item_id);
+
+-- app_order
 CREATE INDEX idx_order_item_id ON app_order(item_id);
 CREATE INDEX idx_order_buyer_id ON app_order(buyer_id);
 
+-- chat
 CREATE INDEX idx_chat_item_id ON chat(item_id);
 CREATE INDEX idx_chat_sender_id ON chat(sender_id);
 
+-- favorite_item
 CREATE INDEX idx_fav_user_id ON favorite_item(user_id);
 CREATE INDEX idx_fav_item_id ON favorite_item(item_id);
 
+-- review
 CREATE INDEX idx_review_order_id ON review(order_id);
 CREATE INDEX idx_review_reviewee_id ON review(reviewee_id);
+CREATE INDEX idx_review_seller_id ON review(seller_id);
+CREATE INDEX idx_review_reviewer_id ON review(reviewer_id);
+CREATE INDEX idx_review_item_id ON review(item_id);
+
+-- review_stats
+CREATE INDEX idx_review_stats_user_id ON review_stats(user_id);
+
+-- user_complaint
+CREATE INDEX idx_complaint_reported_user_id ON user_complaint(reported_user_id);
+CREATE INDEX idx_complaint_reporter_user_id ON user_complaint(reporter_user_id);
+
+-- inquiry
+CREATE INDEX idx_inquiry_user_id ON inquiry(user_id);

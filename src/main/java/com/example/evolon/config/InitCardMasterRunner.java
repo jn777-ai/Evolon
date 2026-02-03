@@ -3,12 +3,14 @@ package com.example.evolon.config;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 import com.example.evolon.domain.enums.PrintedRegulation;
 import com.example.evolon.domain.enums.Rarity;
 import com.example.evolon.entity.CardMaster;
 import com.example.evolon.repository.CardMasterRepository;
 
+@Profile("dev")
 @Configuration
 public class InitCardMasterRunner {
 
