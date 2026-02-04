@@ -37,14 +37,27 @@ public class ItemService {
 	 * 商品一覧検索
 	 * SELLING + SOLD を表示する
 	 * ========================= */
-	public Page<Item> searchItems(String keyword, Long categoryId, int page, int size) {
+	public Page<Item> searchItems(String keyword, Long categoryId, ItemStatus status, int page, int size) {
 
 		Pageable pageable = PageRequest.of(page, size);
 
-		// ★ 表示対象ステータス（ここが重要）
-		List<ItemStatus> statuses = List.of(
-				ItemStatus.SELLING,
-				ItemStatus.SOLD);
+		List<ItemStatus> statuses;
+
+		if (status == null) {
+			// 「全て」
+			statuses = List.of(
+					ItemStatus.SELLING,
+					ItemStatus.PAYMENT_DONE,
+					ItemStatus.SOLD);
+		} else if (status == ItemStatus.SOLD) {
+			// 「売り切れ」
+			statuses = List.of(
+					ItemStatus.PAYMENT_DONE,
+					ItemStatus.SOLD);
+		} else {
+			// 「出品中」
+			statuses = List.of(status);
+		}
 
 		if (hasText(keyword) && categoryId != null) {
 			return itemRepository
