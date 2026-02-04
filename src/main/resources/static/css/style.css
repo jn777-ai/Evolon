@@ -1895,5 +1895,9 @@ input[type="file"]{ font-size: 13px; }
   gap: 12px;                 /* 星/文章/ボタンの間隔 */
 }
 
+.ocr-highlight {
+  background: #e9fff0;
+  transition: background 0.3s ease;
+}
 
 

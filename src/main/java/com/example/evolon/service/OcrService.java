@@ -30,7 +30,7 @@ public class OcrService {
 
 	/**
 	 * カード番号専用OCR（下部領域のみ）
-	 * 例: HMC 299/742 → setCode=MC, cardNumber=299/742
+	 * 例: sv8a 212/187 → setCode=sv8a, cardNumber=212/187
 	 */
 	public ParsedCardNumber extractCardNumberOnly(MultipartFile imageFile) throws IOException {
 
@@ -73,12 +73,10 @@ public class OcrService {
 		try (ImageAnnotatorClient client = ImageAnnotatorClient.create()) {
 
 			BatchAnnotateImagesResponse response = client.batchAnnotateImages(List.of(request));
-
 			AnnotateImageResponse res = response.getResponses(0);
 
 			if (res.hasError()) {
-				throw new RuntimeException(
-						"Vision API Error: " + res.getError().getMessage());
+				throw new RuntimeException("Vision API Error: " + res.getError().getMessage());
 			}
 
 			if (res.getTextAnnotationsList().isEmpty()) {
@@ -87,9 +85,12 @@ public class OcrService {
 			}
 
 			String ocrText = res.getTextAnnotations(0).getDescription();
-			log.info("===== CARD NUMBER OCR =====\n{}", ocrText);
+			log.info("===== CARD NUMBER OCR RAW =====\n{}", ocrText);
 
-			return parseCardNumber(ocrText);
+			ParsedCardNumber parsed = parseCardNumber(ocrText);
+			log.info("===== CARD NUMBER OCR PARSED ===== {}", parsed);
+
+			return parsed;
 		}
 	}
 
@@ -97,7 +98,6 @@ public class OcrService {
 	 * 下部約28%を切り出す（カード番号領域）
 	 * ========================= */
 	private BufferedImage cropBottomArea(BufferedImage original) {
-
 		int w = original.getWidth();
 		int h = original.getHeight();
 
@@ -108,45 +108,50 @@ public class OcrService {
 	}
 
 	/* =========================
-	 * OCR文字列 → setCode / cardNumber 抽出（安全版）
+	 * OCR文字列 → setCode / cardNumber 抽出（安定版）
 	 * ========================= */
 	private ParsedCardNumber parseCardNumber(String text) {
+
 		if (text == null || text.isBlank()) {
 			log.warn("❌ カード番号抽出失敗: 空文字");
 			return ParsedCardNumber.invalid();
 		}
 
-		// 先頭の H/I/J を単語単位で削除（必要なら複数行対応）
-		String cleaned = text.replaceAll("(?m)^\\s*[HIJ]\\s+", "");
+		// ① 全体正規化（全角/空白/スラッシュなど）
+		String cleaned = text
+				.replaceAll("(?m)^\\s*[HIJ]\\s+", "") // 行頭 H/I/J + 空白を除去
+				.replace("／", "/")
+				.replace("　", " ")
+				.trim();
 
-		// sv/m で始まるセットコードを全体から検索
-		Pattern setCodePattern = Pattern.compile("\\b(sv|m)[a-z0-9]{1,4}\\b", Pattern.CASE_INSENSITIVE);
+		// ② setCode抽出（sv/m/v を許容、誤認識補正）
+		Pattern setCodePattern = Pattern.compile("\\b(sv|m|v)[a-z0-9]{1,4}\\b", Pattern.CASE_INSENSITIVE);
 		Matcher setCodeMatcher = setCodePattern.matcher(cleaned);
 
+		String setCode = null;
 		if (setCodeMatcher.find()) {
-			String setCode = setCodeMatcher.group().toLowerCase();
+			setCode = setCodeMatcher.group().toLowerCase();
 
-			// セットコードの後ろ 200文字以内にカード番号があるか探す
-			int start = setCodeMatcher.end();
-			String tail = cleaned.substring(start, Math.min(start + 200, cleaned.length()));
-			Pattern numberPattern = Pattern.compile("(\\d{1,3}/\\d{1,3})");
-			Matcher numberMatcher = numberPattern.matcher(tail);
-
-			if (numberMatcher.find()) {
-				String cardNumber = numberMatcher.group();
-
-				// v8a → sv8a 補正
-				if (setCode.matches("^v\\d")) {
-					setCode = "s" + setCode;
-				}
-
-				log.info("🎯 抽出成功 setCode={}, cardNumber={}", setCode, cardNumber);
-				return new ParsedCardNumber(setCode, cardNumber);
+			// v8a → sv8a
+			if (setCode.startsWith("v")) {
+				setCode = "s" + setCode;
 			}
+
+			// OCRの8↔b誤認識補正（必要なら追加）
+			setCode = setCode.replace("svba", "sv8a");
 		}
 
-		log.warn("❌ カード番号抽出失敗");
+		// ③ cardNumber抽出（空白を許容）
+		Pattern numberPattern = Pattern.compile("(\\d{1,3})\\s*/\\s*(\\d{1,3})");
+		Matcher numberMatcher = numberPattern.matcher(cleaned);
+
+		if (setCode != null && numberMatcher.find()) {
+			String cardNumber = numberMatcher.group(1) + "/" + numberMatcher.group(2);
+			log.info("🎯 抽出成功 setCode={}, cardNumber={}", setCode, cardNumber);
+			return new ParsedCardNumber(setCode, cardNumber);
+		}
+
+		log.warn("❌ カード番号抽出失敗: cleaned={}", cleaned);
 		return ParsedCardNumber.invalid();
 	}
-
 }

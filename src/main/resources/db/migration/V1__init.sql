@@ -233,7 +233,7 @@ CREATE INDEX idx_fav_item_id ON favorite_item(item_id);
 CREATE INDEX idx_review_order_id ON review(order_id);
 CREATE INDEX idx_review_reviewee_id ON review(reviewee_id);
 
--- ========== SEED: CATEGORY（★ V2 を統合） ==========
+-- ========== SEED: CATEGORY==========
 INSERT INTO category (name)
 SELECT 'カード'
 WHERE NOT EXISTS (SELECT 1 FROM category WHERE name = 'カード');

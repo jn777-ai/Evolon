@@ -337,6 +337,13 @@ public class ItemController {
 		if (category.getName() == null || !"カード".equals(category.getName())) {
 			item.setCardInfo(null);
 		} else {
+			// ★カードカテゴリなら画像1枚目必須（OCR兼代表画像）
+			if (imageFiles == null || imageFiles.length == 0 || imageFiles[0] == null || imageFiles[0].isEmpty()) {
+				redirectAttributes.addFlashAttribute("errorMessage",
+						"カードカテゴリでは商品画像（1枚目）が必須です（OCRに使用します）。");
+				return "redirect:/items/new";
+			}
+
 			if (item.getCardInfo() == null
 					|| item.getCardInfo().getCardName() == null || item.getCardInfo().getCardName().isBlank()
 					|| item.getCardInfo().getPackName() == null || item.getCardInfo().getPackName().isBlank()

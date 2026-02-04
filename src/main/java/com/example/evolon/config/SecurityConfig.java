@@ -16,34 +16,64 @@ public class SecurityConfig {
 
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+
 		http
+				// =========================
+				// 認可ルール
+				// =========================
 				.authorizeHttpRequests(authorize -> authorize
+						// 認証不要（公開）
 						.requestMatchers(
 								"/login",
 								"/register",
 								"/register/**",
 								"/password/**",
+
+								// 静的ファイル
 								"/css/**",
 								"/js/**",
 								"/images/**",
-								"/items/**")
+
+								// 商品関連を公開（要件に合わせて）
+								"/items/**",
+
+								// OCR API（画像POSTするので permitAll 推奨）
+								"/api/ocr",
+
+								// Stripe webhook
+								"/orders/stripe-webhook")
 						.permitAll()
-						.requestMatchers("/api/ocr").permitAll() // ★ここ重要
-						.requestMatchers("/orders/stripe-webhook").permitAll()
+
+						// 管理者だけ
 						.requestMatchers("/admin/**").hasRole("ADMIN")
+
+						// それ以外はログイン必須
 						.anyRequest().authenticated())
+
+				// =========================
+				// ログイン
+				// =========================
 				.formLogin(form -> form
 						.loginPage("/login")
 						.successHandler(new LoginSuccessHandler())
 						.permitAll())
+
+				// =========================
+				// ログアウト
+				// =========================
 				.logout(logout -> logout
 						.logoutUrl("/logout")
 						.logoutSuccessUrl("/login?logout")
 						.permitAll())
+
+				// =========================
+				// CSRF
+				// =========================
 				.csrf(csrf -> csrf
+						// webhook は外部から POST されるので必須
 						.ignoringRequestMatchers("/orders/stripe-webhook")
-						.ignoringRequestMatchers("/api/ocr") // ★ここ重要
-				);
+						// OCR は fetch で POST するので外す（403回避）
+						.ignoringRequestMatchers("/api/ocr"));
 
 		return http.build();
 	}
