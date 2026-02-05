@@ -184,10 +184,13 @@
           </p>
 
           <!-- ステータス表示 -->
-          <span class="status"
-                th:classappend="${item.status != null ? item.status.name().toLowerCase() : 'selling'}"
-                th:text="${item.status != null ? item.status.label : '出品中'}">
-          </span>
+		  <span class="status"
+		        th:classappend="${item.status != null ? item.status.name().toLowerCase() : 'selling'}"
+		        th:text="${
+		          item.status == null ? '出品中' :
+		          (item.status.name() == 'SELLING' ? '出品中' : '売り切れ')
+		        }">
+		  </span>
         </a>
       </div>
 
