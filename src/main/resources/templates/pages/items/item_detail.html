@@ -210,7 +210,11 @@
               </div>
 
               <div th:if="${isOwner}" class="itemd-owner">
-                <a th:href="@{/items/{id}/edit(id=${item.id})}" class="button button--edit itemd-btn">編集する</a>
+				<a th:if="${isOwner and item.status.name() == 'SELLING'}"
+				   th:href="@{/items/{id}/edit(id=${item.id})}"
+				   class="btn btn-outline-primary">
+				  編集する
+				</a>
               </div>
 
             </div>
