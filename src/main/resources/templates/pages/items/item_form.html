@@ -10,223 +10,236 @@
 
 <th:block th:fragment="content">
 <body>
-<div class="container">
-  <h1 th:text="${item.id == null ? '商品出品' : '商品編集'}"></h1>
 
-  <!-- 編集判定（JS用） -->
+<div class="page-wrap">
+  <div class="page-head">
+    <div>
+      <h1 class="page-title" th:text="${item.id == null ? '商品出品' : '商品編集'}"></h1>
+      <p class="page-sub">画像 → 情報入力（カードは写真から自動入力もOK）→ 出品</p>
+    </div>
+
+    <div class="stepper" id="stepper">
+      <div class="step is-active" data-step="1">
+        <span class="dot">1</span><span class="label">画像</span>
+      </div>
+      <div class="bar"></div>
+      <div class="step" data-step="2">
+        <span class="dot">2</span><span class="label">商品情報</span>
+      </div>
+    </div>
+  </div>
+
   <input type="hidden" id="isEdit" th:value="${item.id != null}">
+  <input type="hidden" id="cardCategoryId" th:value="${cardCategoryId}">
 
-  <!-- =========================
-       更新/出品フォーム
-  ========================== -->
-  <form th:action="${item.id == null ? '/items' : '/items/' + item.id}"
+  <form id="itemForm"
+        class="form-shell"
+        th:action="${item.id == null ? '/items' : '/items/' + item.id}"
         method="post" enctype="multipart/form-data">
 
-    <!-- 編集時PUT（HiddenHttpMethodFilterが有効ならPUT扱いになる） -->
     <input type="hidden" th:if="${item.id != null}" name="_method" value="put">
 
-    <!-- =========================
-         基本情報
-    ========================== -->
+    <!-- 基本情報 -->
+    <section class="card card--compact">
+      <div class="grid2">
+        <div class="field">
+          <label for="name">商品名</label>
+          <input type="text" id="name" name="name" th:value="${item.name}" placeholder="例）リザードンex SR" required>
+        </div>
 
-    <p>
-      <label for="name">商品名:</label>
-      <input type="text" id="name" name="name" th:value="${item.name}" required>
-    </p>
-
-    <p>
-      <label for="categoryId">カテゴリ:</label>
-      <select id="categoryId" name="categoryId" required>
-        <option value="" disabled selected>選択してください</option>
-        <option th:each="category : ${categories}"
-                th:value="${category.id}"
-                th:text="${category.name}"
-                th:selected="${item.category != null and item.category.id == category.id}">
-        </option>
-      </select>
-    </p>
-
-    <!-- =========================
-         画像（全カテゴリ共通）
-         ※カードカテゴリ & 新規出品 のときだけ 1枚目でOCR
-    ========================== -->
-    <div id="imageSection" style="margin-top:12px;">
-      <p>
-        <label for="images">商品画像:</label>
-        <input type="file" id="images" name="images" accept="image/*" multiple>
-        <small>※最大8枚まで（カードカテゴリ時、新規出品は1枚目をOCRに使用）</small>
-
-        <span th:if="${item.imageUrl}">
-          <br>現在の画像:
-          <img th:src="${item.imageUrl}" style="width:100px;">
-        </span>
-      </p>
-
-      <!-- OCRステータス（カードカテゴリ時のみ使う） -->
-      <p id="ocrStatus"
-         style="display:none; color:#555; font-size:0.9em; margin-top:4px;"></p>
-
-      <!-- 画像プレビュー -->
-      <div id="imagePreview"
-           style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;"></div>
-    </div>
+        <div class="field">
+          <label for="categoryId">カテゴリ</label>
+          <select id="categoryId" name="categoryId" required>
+            <option value="" disabled selected>選択してください</option>
+            <option th:each="category : ${categories}"
+                    th:value="${category.id}"
+                    th:text="${category.name}"
+                    th:selected="${item.category != null and item.category.id == category.id}">
+            </option>
+          </select>
+        </div>
+      </div>
+    </section>
 
     <!-- =========================
-         カード関連（カードカテゴリ選択時のみ表示）
-         ※商品説明の上に置く
+         STEP 1：画像
     ========================== -->
-    <div id="cardSection" style="display:none; margin-top:18px;">
-      <div id="cardFields">
+    <section class="card" data-step-panel="1">
+      <div class="card-head">
+        <div class="card-title">
+          <span class="badge badge--step">STEP 1</span>
+          <h2>商品画像</h2>
+          <p>最大8枚。カードの場合は1枚目からカード情報を自動入力できます。</p>
+        </div>
+        <div class="card-action">
+          <label class="file-btn">
+            画像を選ぶ
+            <input type="file" id="images" name="images" accept="image/*" multiple hidden>
+          </label>
+        </div>
+      </div>
 
-        <p>
-          <label for="cardNumberText">カード番号:</label>
-          <input type="text" id="cardNumberText" placeholder="例: sv8a 212/187">
-          <button type="button" id="autoFillBtn">自動入力</button>
-        </p>
+      <!--  ステータス表示は「カードのときだけ」出す -->
+      <p id="ocrStatus" class="hint" style="display:none;"></p>
+      <div id="imagePreview" class="preview-grid"></div>
 
-        <p>
-          <label for="cardName">カード名:</label>
-          <input type="text" id="cardName" name="cardInfo.cardName"
-                 th:value="${item.cardInfo != null ? item.cardInfo.cardName : ''}">
-        </p>
+      <div class="subnote" th:if="${item.imageUrl}">
+        <span>現在の画像</span>
+        <img th:src="${item.imageUrl}" class="thumb">
+      </div>
+    </section>
 
-        <p>
-          <label for="rarity">レアリティ:</label>
-          <select id="rarity" name="cardInfo.rarity">
+    <!-- =========================
+         STEP 2：商品情報（カードならカード情報もここに出す）
+    ========================== -->
+    <section class="card" data-step-panel="2">
+      <div class="card-head">
+        <div class="card-title">
+          <span class="badge badge--step">STEP 2</span>
+          <h2>商品情報</h2>
+          <p>カードの場合は「カード情報」もここに表示されます。</p>
+        </div>
+      </div>
+
+      <!--  カード情報：カードカテゴリの時だけ表示 -->
+      <section id="cardSection" class="card card--special" style="display:none;">
+        <div class="card-head">
+          <div class="card-title">
+            <h3 style="margin:0;">カード情報</h3>
+            <p style="margin:6px 0 0;">写真から自動入力された内容は <span class="tag tag--auto">AUTO</span> 表示になります。</p>
+          </div>
+          <div class="legend">
+            <span class="tag tag--auto">AUTO</span>
+            <span class="tag tag--edit">EDIT</span>
+            <span class="tag tag--req">必須</span>
+          </div>
+        </div>
+
+        <div class="grid2">
+          <div class="field field--track">
+            <label for="cardName">カード名 <span class="mini-tag" data-badge>未入力</span></label>
+            <input type="text" id="cardName" name="cardInfo.cardName"
+                   th:value="${item.cardInfo != null ? item.cardInfo.cardName : ''}">
+          </div>
+
+          <div class="field field--track">
+            <label for="rarity">レアリティ <span class="mini-tag" data-badge>未入力</span></label>
+            <select id="rarity" name="cardInfo.rarity">
+              <option value="" selected>選択してください</option>
+              <option th:each="r : ${rarities}"
+                      th:value="${r.name()}"
+                      th:text="${r.label}"
+                      th:selected="${item.cardInfo != null ? item.cardInfo.rarity == r : false}">
+              </option>
+            </select>
+          </div>
+
+          <div class="field field--track">
+            <label for="packName">封入パック <span class="mini-tag" data-badge>未入力</span></label>
+            <input type="text" id="packName" name="cardInfo.packName"
+                   th:value="${item.cardInfo != null ? item.cardInfo.packName : ''}">
+          </div>
+
+          <div class="field field--track">
+            <label for="condition">状態 <span class="mini-tag" data-badge>手動</span></label>
+            <select id="condition" name="cardInfo.condition">
+              <option value="" selected>選択してください</option>
+              <option th:each="c : ${conditions}"
+                      th:value="${c.name()}"
+                      th:text="${c.label}"
+                      th:selected="${item.cardInfo != null ? item.cardInfo.condition == c : false}">
+              </option>
+            </select>
+          </div>
+
+          <div class="field field--track">
+            <label for="regulation">レギュレーション <span class="mini-tag" data-badge>未入力</span></label>
+            <select id="regulation" name="cardInfo.regulation">
+              <option value="" selected>選択してください</option>
+              <option th:each="r : ${regulations}"
+                      th:value="${r.name()}"
+                      th:text="${r.label}"
+                      th:selected="${item.cardInfo != null ? item.cardInfo.regulation == r : false}">
+              </option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!--  商品説明 -->
+      <div class="field">
+        <label for="description">商品説明</label>
+        <textarea id="description" name="description" th:text="${item.description}" placeholder="状態・注意点など"></textarea>
+      </div>
+
+      <!--  価格・発送 -->
+      <div class="grid2">
+        <div class="field">
+          <label for="price">価格 (¥)</label>
+          <input type="number" id="price" name="price" th:value="${item.price}" step="0.01" required>
+        </div>
+
+        <div class="field">
+          <label for="shippingDuration">発送までの日数</label>
+          <select id="shippingDuration" name="shippingDuration" required>
             <option value="" selected>選択してください</option>
-            <option th:each="r : ${rarities}"
+            <option th:each="d : ${shippingDurations}"
+                    th:value="${d.name()}"
+                    th:text="${d.label}"
+                    th:selected="${item.shippingDuration != null ? item.shippingDuration == d : false}">
+            </option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="shippingFeeBurden">送料負担</label>
+          <select id="shippingFeeBurden" name="shippingFeeBurden" required>
+            <option value="" selected>選択してください</option>
+            <option th:each="b : ${shippingFeeBurdens}"
+                    th:value="${b.name()}"
+                    th:text="${b.label}"
+                    th:selected="${item.shippingFeeBurden != null ? item.shippingFeeBurden == b : false}">
+            </option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="shippingRegion">発送元の地域</label>
+          <select id="shippingRegion" name="shippingRegion" required>
+            <option value="" selected>選択してください</option>
+            <option th:each="r : ${shippingRegions}"
                     th:value="${r.name()}"
                     th:text="${r.label}"
-                    th:selected="${item.cardInfo != null ? item.cardInfo.rarity == r : false}">
+                    th:selected="${item.shippingRegion != null ? item.shippingRegion == r : false}">
             </option>
           </select>
-        </p>
+        </div>
 
-        <p>
-          <label for="packName">封入パック:</label>
-          <input type="text" id="packName" name="cardInfo.packName"
-                 th:value="${item.cardInfo != null ? item.cardInfo.packName : ''}">
-        </p>
-
-        <p>
-          <label for="condition">状態:</label>
-          <select id="condition" name="cardInfo.condition">
+        <div class="field">
+          <label for="shippingMethod">配送方法</label>
+          <select id="shippingMethod" name="shippingMethod" required>
             <option value="" selected>選択してください</option>
-            <option th:each="c : ${conditions}"
-                    th:value="${c.name()}"
-                    th:text="${c.label}"
-                    th:selected="${item.cardInfo != null ? item.cardInfo.condition == c : false}">
+            <option th:each="m : ${shippingMethods}"
+                    th:value="${m.name()}"
+                    th:text="${m.label}"
+                    th:selected="${item.shippingMethod != null ? item.shippingMethod == m : false}">
             </option>
           </select>
-        </p>
+        </div>
+      </div>
+    </section>
 
-        <p>
-          <label for="regulation">レギュレーション:</label>
-          <select id="regulation" name="cardInfo.regulation">
-            <option value="" selected>選択してください</option>
-            <option th:each="r : ${regulations}"
-                    th:value="${r.name()}"
-                    th:text="${r.label}"
-                    th:selected="${item.cardInfo != null ? item.cardInfo.regulation == r : false}">
-            </option>
-          </select>
-        </p>
+    <!-- actions -->
+    <div class="footer-actions">
+      <button th:if="${item.id != null}" type="button" class="btn btn--danger" onclick="submitDelete();">削除する</button>
+      <div class="right">
+        <button type="submit" class="btn btn--primary" th:text="${item.id == null ? '出品する' : '更新する'}"></button>
+        <a th:href="@{/items}" class="btn btn--ghost">キャンセル</a>
       </div>
     </div>
 
-    <!-- =========================
-         商品説明（カード情報の下に来る）
-    ========================== -->
-    <p style="margin-top:14px;">
-      <label for="description">商品説明:</label>
-      <textarea id="description" name="description"
-                th:text="${item.description}"></textarea>
-    </p>
-
-    <!-- 価格 -->
-    <p>
-      <label for="price">価格 (¥):</label>
-      <input type="number" id="price" name="price"
-             th:value="${item.price}" step="0.01" required>
-    </p>
-
-    <!-- =========================
-         発送情報
-    ========================== -->
-    <p>
-      <label for="shippingDuration">発送までの日数:</label>
-      <select id="shippingDuration" name="shippingDuration" required>
-        <option value="" selected>選択してください</option>
-        <option th:each="d : ${shippingDurations}"
-                th:value="${d.name()}"
-                th:text="${d.label}"
-                th:selected="${item.shippingDuration != null ? item.shippingDuration == d : false}">
-        </option>
-      </select>
-    </p>
-
-    <p>
-      <label for="shippingFeeBurden">送料負担:</label>
-      <select id="shippingFeeBurden" name="shippingFeeBurden" required>
-        <option value="" selected>選択してください</option>
-        <option th:each="b : ${shippingFeeBurdens}"
-                th:value="${b.name()}"
-                th:text="${b.label}"
-                th:selected="${item.shippingFeeBurden != null ? item.shippingFeeBurden == b : false}">
-        </option>
-      </select>
-    </p>
-
-    <p>
-      <label for="shippingRegion">発送元の地域:</label>
-      <select id="shippingRegion" name="shippingRegion" required>
-        <option value="" selected>選択してください</option>
-        <option th:each="r : ${shippingRegions}"
-                th:value="${r.name()}"
-                th:text="${r.label}"
-                th:selected="${item.shippingRegion != null ? item.shippingRegion == r : false}">
-        </option>
-      </select>
-    </p>
-
-    <p>
-      <label for="shippingMethod">配送方法:</label>
-      <select id="shippingMethod" name="shippingMethod" required>
-        <option value="" selected>選択してください</option>
-        <option th:each="m : ${shippingMethods}"
-                th:value="${m.name()}"
-                th:text="${m.label}"
-                th:selected="${item.shippingMethod != null ? item.shippingMethod == m : false}">
-        </option>
-      </select>
-    </p>
-
-    <!-- =========================
-         ボタン
-    ========================== -->
-    <div class="button-group">
-
-      <!-- ✅ 削除ボタン（編集時のみ） -->
-      <button th:if="${item.id != null}"
-              type="button"
-              class="button danger"
-              onclick="submitDelete();">
-        削除する
-      </button>
-
-      <div class="button-right">
-        <button type="submit" class="button primary"
-                th:text="${item.id == null ? '出品する' : '更新する'}"></button>
-        <a th:href="@{/items}" class="button secondary">キャンセル</a>
-      </div>
-
-    </div>
   </form>
 
-  <!-- =========================
-       ✅ 削除用フォーム（Controllerに合わせる）
-       /items/{id}/delete に POST
-  ========================== -->
   <form th:if="${item.id != null}"
         th:action="@{/items/{id}/delete(id=${item.id})}"
         method="post"
@@ -234,37 +247,43 @@
         style="display:none;">
     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
   </form>
-
 </div>
 
 <style>
-/* OCR成功時に軽く強調 */
-.ocr-highlight {
-  background: #eaffea;
-  transition: background 0.3s;
-}
+.ocr-highlight { background: #eaffea; transition: background 0.3s; }
 </style>
 
 <script>
-/* =========================
-   ✅ 削除送信
-========================= */
 function submitDelete() {
   if (!confirm('本当にこの商品を削除しますか？この操作は取り消せません。')) return;
   document.getElementById('deleteForm')?.submit();
 }
 
-/* =========================
-   共通
-========================= */
 function isEditMode() {
   return document.getElementById('isEdit')?.value === 'true';
 }
+
+/*  「カード」判定は “表示テキスト” じゃなく “ID” で判定（サプライ誤爆防止） */
 function isCardCategorySelected() {
-  const categorySelect = document.getElementById('categoryId');
-  const selectedText = categorySelect?.options[categorySelect.selectedIndex]?.text?.trim();
-  return selectedText === 'カード';
+  const sel = document.getElementById('categoryId');
+  const cardId = document.getElementById('cardCategoryId')?.value;
+  if (!sel || !cardId) return false;
+  return String(sel.value) === String(cardId);
 }
+
+function isCategoryUnset() {
+  const sel = document.getElementById('categoryId');
+  return !sel || !sel.value;
+}
+function setCategoryToCardIfPossible() {
+  const sel = document.getElementById('categoryId');
+  const cardId = document.getElementById('cardCategoryId')?.value;
+  if (!sel || !cardId) return false;
+  sel.value = cardId;
+  sel.dispatchEvent(new Event('change'));
+  return true;
+}
+
 function showOcrStatus(msg) {
   const el = document.getElementById('ocrStatus');
   if (!el) return;
@@ -278,67 +297,147 @@ function hideOcrStatus() {
   el.textContent = '';
 }
 
-/* =========================
-   カテゴリ切替：カード欄表示 + required
-   ※カード以外でも画像は常に表示（UX良い）
-========================= */
+function setFieldState(id, state) {
+  const el = document.getElementById(id);
+  if (!el) return;
+
+  const group = el.closest('.field');
+  if (!group) return;
+
+  const badge = group.querySelector('[data-badge]');
+
+  if (state === 'auto') {
+    if (badge) badge.textContent = 'AUTO';
+    el.dataset.filledBy = 'ocr';
+    return;
+  }
+  if (state === 'edited') {
+    if (badge) badge.textContent = 'EDIT';
+    el.dataset.filledBy = 'manual';
+    return;
+  }
+  if (state === 'missing') {
+    if (badge) badge.textContent = '必須';
+    return;
+  }
+  if (badge) badge.textContent = '未入力';
+}
+
+function getValueOf(id) {
+  const el = document.getElementById(id);
+  if (!el) return '';
+  if (el.tagName === 'SELECT') return (el.value || '').toString().trim();
+  return (el.value || '').toString().trim();
+}
+
+function refreshCardRequiredStates() {
+  const isCard = isCardCategorySelected();
+  const ids = ['cardName','rarity','packName','condition','regulation'];
+
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    el.required = isCard;
+
+    if (!isCard) {
+      setFieldState(id, 'none');
+      return;
+    }
+
+    const v = getValueOf(id);
+    if (!v) setFieldState(id, 'missing');
+    else {
+      if (!el.dataset.filledBy) setFieldState(id, 'edited');
+    }
+  });
+}
+
+function bindManualEditDetect(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+
+  const onManual = () => {
+    if (!isCardCategorySelected()) return;
+    const v = getValueOf(id);
+    if (!v) setFieldState(id, 'missing');
+    else setFieldState(id, 'edited');
+  };
+
+  el.addEventListener('input', onManual);
+  el.addEventListener('change', onManual);
+}
+
+const SHIPPING_DEFAULT_KEY = 'evolon.shipping.defaults';
+
+function saveShippingDefaults() {
+  const data = {
+    shippingDuration: document.getElementById('shippingDuration')?.value || '',
+    shippingFeeBurden: document.getElementById('shippingFeeBurden')?.value || '',
+    shippingRegion: document.getElementById('shippingRegion')?.value || '',
+    shippingMethod: document.getElementById('shippingMethod')?.value || ''
+  };
+  localStorage.setItem(SHIPPING_DEFAULT_KEY, JSON.stringify(data));
+}
+
+function loadShippingDefaults() {
+  if (isEditMode()) return;
+  const raw = localStorage.getItem(SHIPPING_DEFAULT_KEY);
+  if (!raw) return;
+
+  try {
+    const data = JSON.parse(raw);
+    const sd = document.getElementById('shippingDuration');
+    const sfb = document.getElementById('shippingFeeBurden');
+    const sr = document.getElementById('shippingRegion');
+    const sm = document.getElementById('shippingMethod');
+
+    if (sd && (!sd.value || sd.value === '')) sd.value = data.shippingDuration || '';
+    if (sfb && (!sfb.value || sfb.value === '')) sfb.value = data.shippingFeeBurden || '';
+    if (sr && (!sr.value || sr.value === '')) sr.value = data.shippingRegion || '';
+    if (sm && (!sm.value || sm.value === '')) sm.value = data.shippingMethod || '';
+  } catch (e) {
+    console.warn('shipping defaults restore failed', e);
+  }
+}
+
 function toggleCardUI() {
   const isCard = isCardCategorySelected();
-
   const cardSection = document.getElementById('cardSection');
   if (cardSection) cardSection.style.display = isCard ? 'block' : 'none';
 
-  // OCR説明（カード×新規のみ）
-  if (isCard && !isEditMode()) {
-    showOcrStatus('📸 商品画像の1枚目をカード情報のOCR読み取りに使用します');
-  } else {
-    hideOcrStatus();
-  }
+  /*  ステータス表示はカードのときだけ */
+  if (isCard && !isEditMode()) showOcrStatus('📸 1枚目からカード情報を自動入力できます');
+  else hideOcrStatus();
 
-  // required制御
   ['cardName', 'packName', 'rarity', 'condition', 'regulation'].forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
+
     el.required = isCard;
 
     if (!isCard) {
       if (el.tagName === 'SELECT') el.selectedIndex = 0;
       else el.value = '';
+      delete el.dataset.filledBy;
     }
   });
 
-  const num = document.getElementById('cardNumberText');
-  if (num && !isCard) num.value = '';
+  refreshCardRequiredStates();
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  toggleCardUI();
-  document.getElementById('categoryId')?.addEventListener('change', toggleCardUI);
-});
-
-/* =========================
-   画像制限 + プレビュー
-========================= */
 function validateImages(files, inputEl) {
-  if (files.length > 8) {
-    alert('画像は最大8枚までです');
-    inputEl.value = '';
-    return false;
-  }
+  if (files.length > 8) { alert('画像は最大8枚までです'); inputEl.value=''; return false; }
   const total = files.reduce((sum, f) => sum + f.size, 0);
-  if (total > 80 * 1024 * 1024) {
-    alert('画像サイズが大きすぎます（最大80MB）');
-    inputEl.value = '';
-    return false;
-  }
+  if (total > 80 * 1024 * 1024) { alert('画像サイズが大きすぎます（最大80MB）'); inputEl.value=''; return false; }
   return true;
 }
 
 function renderPreview(files) {
   const wrap = document.getElementById('imagePreview');
   if (!wrap) return;
-
   wrap.innerHTML = '';
+
   files.slice(0, 8).forEach((file, idx) => {
     const url = URL.createObjectURL(file);
     const img = document.createElement('img');
@@ -349,19 +448,15 @@ function renderPreview(files) {
     img.style.objectFit = 'cover';
     img.style.borderRadius = '10px';
     img.style.border = idx === 0 ? '2px solid #4aa3ff' : '1px solid #ddd';
-    img.title = idx === 0 ? '1枚目（OCRに使用）' : '';
+    img.title = idx === 0 ? '1枚目（自動入力に使用）' : '';
     wrap.appendChild(img);
   });
 }
 
-/* =========================
-   OCR（カード×新規のみ）
-========================= */
 let lastOcrKey = null;
 
 function highlightCardFields() {
-  const ids = ['cardName', 'rarity', 'packName', 'regulation'];
-  ids.forEach(id => {
+  ['cardName', 'rarity', 'packName', 'regulation'].forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
     el.classList.add('ocr-highlight');
@@ -372,6 +467,9 @@ function highlightCardFields() {
 async function doOcrAndFill(file) {
   if (!file) return;
 
+  /*  カードじゃないなら呼ばない（=サプライは何も出さない） */
+  if (!isCardCategorySelected() && !isCategoryUnset()) return;
+
   showOcrStatus('📸 画像を解析中です...');
 
   const formData = new FormData();
@@ -381,28 +479,44 @@ async function doOcrAndFill(file) {
   try {
     res = await fetch('/api/ocr', { method: 'POST', body: formData });
   } catch (e) {
-    showOcrStatus('⚠️ OCRリクエストに失敗しました（通信エラー）');
+    showOcrStatus('⚠️ 通信エラーで自動入力できませんでした');
     return;
   }
 
   if (!res.ok) {
-    showOcrStatus('⚠️ OCRに失敗しました（サーバエラー）');
+    showOcrStatus('⚠️ サーバエラーで自動入力できませんでした');
     return;
   }
 
   const data = await res.json();
 
+  /*  検出できなかった場合：カテゴリ未選択なら“誘導”、選択済なら“カード時のみ”表示 */
   if (!data.card) {
-    showOcrStatus('⚠️ ' + (data.message ?? 'カード情報を取得できませんでした'));
+    if (isCategoryUnset()) {
+      showOcrStatus('💡 カードの場合はカテゴリを「カード」にすると自動入力できます');
+    } else if (isCardCategorySelected()) {
+      showOcrStatus('⚠️ カード情報を自動入力できませんでした（写真を変える/型番が写るように撮影）');
+    } else {
+      hideOcrStatus();
+    }
     return;
   }
 
-  document.getElementById('cardName').value = data.card.cardName ?? '';
-  document.getElementById('rarity').value = data.card.rarity ?? '';
-  document.getElementById('packName').value = data.card.packName ?? '';
-  document.getElementById('regulation').value = data.card.printedRegulation ?? '';
+  /* ✅ OCR成功 → カテゴリ未選択ならカードへ自動セット */
+  if (isCategoryUnset()) setCategoryToCardIfPossible();
 
-  showOcrStatus('✅ 自動入力されました（必要なら微調整してください）');
+  document.getElementById('cardName').value = data.card.cardName ?? '';
+  document.getElementById('rarity').value = (data.card.rarity ?? '').toString().trim();
+  document.getElementById('packName').value = data.card.packName ?? '';
+  document.getElementById('regulation').value = (data.card.regulation ?? '').toString().trim();
+
+  setFieldState('cardName', getValueOf('cardName') ? 'auto' : 'missing');
+  setFieldState('rarity', getValueOf('rarity') ? 'auto' : 'missing');
+  setFieldState('packName', getValueOf('packName') ? 'auto' : 'missing');
+  setFieldState('regulation', getValueOf('regulation') ? 'auto' : 'missing');
+  if (!getValueOf('condition')) setFieldState('condition', 'missing');
+
+  showOcrStatus(' カード情報を自動入力しました（状態を選ぶと出品できます）');
   highlightCardFields();
 }
 
@@ -413,41 +527,41 @@ async function maybeOcrFirstImage(file) {
   await doOcrAndFill(file);
 }
 
+document.addEventListener('DOMContentLoaded', () => {
+  loadShippingDefaults();
+
+  const form = document.getElementById('itemForm');
+  if (form) form.addEventListener('submit', () => {
+    saveShippingDefaults();
+    refreshCardRequiredStates();
+  });
+
+  ['cardName','rarity','packName','condition','regulation'].forEach(bindManualEditDetect);
+
+  toggleCardUI();
+  document.getElementById('categoryId')?.addEventListener('change', () => {
+    toggleCardUI();
+
+    // カードにした瞬間、画像が既にあるなら自動入力
+    if (!isEditMode() && isCardCategorySelected()) {
+      const files = Array.from(document.getElementById('images')?.files || []);
+      if (files.length > 0) maybeOcrFirstImage(files[0]);
+    }
+  });
+
+  refreshCardRequiredStates();
+});
+
 document.getElementById('images')?.addEventListener('change', async function () {
   const files = Array.from(this.files || []);
   if (!validateImages(files, this)) return;
 
   renderPreview(files);
 
-  // 編集画面ではOCRしない（上書き防止）
   if (isEditMode()) return;
 
-  // カードカテゴリの時だけOCR（1枚目）
-  if (!isCardCategorySelected()) return;
-
+  //  ここはカテゴリ未選択でも試す（カードだったら自動入力できる）
   await maybeOcrFirstImage(files[0]);
-});
-
-/* =========================
-   手入力（カード番号→自動入力）
-========================= */
-document.getElementById('autoFillBtn')?.addEventListener('click', async () => {
-  const text = document.getElementById('cardNumberText')?.value?.trim();
-  if (!text) return alert('カード番号を入力してください');
-
-  const res = await fetch('/items/auto-fill?text=' + encodeURIComponent(text));
-  if (!res.ok) return alert('自動入力に失敗しました');
-
-  const data = await res.json();
-  if (!data) return alert('該当カードが見つかりませんでした');
-
-  document.getElementById('cardName').value = data.cardName ?? '';
-  document.getElementById('packName').value = data.packName ?? '';
-  document.getElementById('rarity').value = data.rarity ?? '';
-  document.getElementById('regulation').value = data.regulation ?? '';
-
-  showOcrStatus('✅ 手入力から自動入力しました');
-  highlightCardFields();
 });
 </script>
 

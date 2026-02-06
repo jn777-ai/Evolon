@@ -1,96 +1,62 @@
 package com.example.evolon.controller;
 
-// 入出力例外に備えるための import
 import java.io.IOException;
-// 金額を正確に扱うための BigDecimal の import
 import java.math.BigDecimal;
-// Optional で存在チェックを簡潔にするための import
 import java.util.Optional;
 
-// ページング機能を使うための import
 import org.springframework.data.domain.Page;
-// 認証ユーザ取得用アノテーションの import
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-// 認証ユーザの型の import
 import org.springframework.security.core.userdetails.UserDetails;
-// MVC のコントローラアノテーションの import
 import org.springframework.stereotype.Controller;
-// 画面へデータを渡すための Model の import
 import org.springframework.ui.Model;
-// HTTP GET を扱うための import
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
-// パス変数を扱うための import
 import org.springframework.web.bind.annotation.PathVariable;
-// HTTP POST を扱うための import
 import org.springframework.web.bind.annotation.PostMapping;
-// コントローラ全体のベースパス指定用 import
 import org.springframework.web.bind.annotation.RequestMapping;
-// クエリ/フォームのパラメタ取得用 import
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-// 画像アップロードのための MultipartFile の import
 import org.springframework.web.multipart.MultipartFile;
-// リダイレクト時にメッセージを渡すための import
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.example.evolon.domain.enums.CardCondition;
 import com.example.evolon.domain.enums.Rarity;
 import com.example.evolon.domain.enums.Regulation;
-// ★ enum（選択肢用）
 import com.example.evolon.domain.enums.ShippingDuration;
 import com.example.evolon.domain.enums.ShippingFeeBurden;
 import com.example.evolon.domain.enums.ShippingMethod;
 import com.example.evolon.domain.enums.ShippingRegion;
 import com.example.evolon.dto.CardAutoFillResponse;
 import com.example.evolon.dto.ParsedCardNumber;
-// カテゴリエンティティの import
 import com.example.evolon.entity.Category;
-// 商品エンティティの import
 import com.example.evolon.entity.Item;
 import com.example.evolon.entity.ItemStatus;
-// ユーザエンティティの import
 import com.example.evolon.entity.User;
 import com.example.evolon.service.CardMasterService;
 import com.example.evolon.service.CardNumberParserService;
-// カテゴリ関連サービスの import
 import com.example.evolon.service.CategoryService;
-// チャット関連サービスの import
 import com.example.evolon.service.ChatService;
-// お気に入り関連サービスの import
 import com.example.evolon.service.FavoriteService;
-// 商品関連サービスの import
 import com.example.evolon.service.ItemService;
 import com.example.evolon.service.RegulationService;
-// レビュー関連サービスの import
 import com.example.evolon.service.ReviewService;
-// ユーザ関連サービスの import
 import com.example.evolon.service.UserService;
 
-// MVC コントローラであることを示すアノテーション
 @Controller
-// /items 配下のリクエストを受け付ける
 @RequestMapping("/items")
 public class ItemController {
 
-	// 商品サービスへの参照
 	private final ItemService itemService;
-	// カテゴリサービスへの参照
 	private final CategoryService categoryService;
-	// ユーザサービスへの参照
 	private final UserService userService;
-	// チャットサービスへの参照
 	private final ChatService chatService;
-	// お気に入りサービスへの参照
 	private final FavoriteService favoriteService;
-	// レビューサービスへの参照
 	private final ReviewService reviewService;
 
 	private final CardNumberParserService cardNumberParserService;
 	private final CardMasterService cardMasterService;
 	private final RegulationService regulationService;
 
-	// 依存関係をコンストラクタインジェクションで受け取る
 	public ItemController(
 			ItemService itemService,
 			CategoryService categoryService,
@@ -115,31 +81,15 @@ public class ItemController {
 
 	@GetMapping
 	public String listItems(
-			// 検索キーワード（商品名など、任意）
 			@RequestParam(value = "keyword", required = false) String keyword,
-
-			// カテゴリ ID（任意）
 			@RequestParam(value = "categoryId", required = false) Long categoryId,
-
-			// ステータス（SELLING / SOLD / null=全て）
 			@RequestParam(value = "status", required = false) String status,
-
-			// ページ番号（0 始まり）
 			@RequestParam(value = "page", defaultValue = "0") int page,
-
-			// 1ページあたりの件数
 			@RequestParam(value = "size", defaultValue = "10") int size,
-
-			// 画面へデータを渡す Model
 			Model model) {
 
-		// ===== ステータスを enum に安全変換 =====
-		// null / 空 / 不正値 → null（= 全て扱い）
 		ItemStatus statusEnum = parseEnumSafely(status, ItemStatus.class);
 
-		// ===== 商品一覧検索 =====
-		// statusEnum == null の場合は
-		// Service 側で「SELLING + PAYMENT_DONE + SOLD」を返す
 		Page<Item> items = itemService.searchItems(
 				keyword,
 				categoryId,
@@ -147,68 +97,42 @@ public class ItemController {
 				page,
 				size);
 
-		// ===== 画面表示用データを Model に詰める =====
 		model.addAttribute("items", items);
 		model.addAttribute("categories", categoryService.getAllCategories());
 
-		// ★ item_list.html の検索フォームで使用する enum
 		model.addAttribute("rarities", Rarity.values());
 		model.addAttribute("regulations", Regulation.values());
 		model.addAttribute("conditions", CardCondition.values());
 
-		// 商品一覧画面
 		return "pages/items/item_list";
 	}
 
-	/* =========================================================
-	 * ★ カード条件検索 GET /items/search
-	 * （cardName/rarity/regulation/condition/status/packName/price/sort を反映）
-	 *
-	 * ★ポイント：
-	 *  - rarity/regulation/condition/status は String で受けて enum に変換
-	 *    → HTML の value が壊れていても例外になりにくい
-	 * ========================================================= */
 	@GetMapping("/search")
 	public String search(
-			// カード名（部分一致想定）
 			@RequestParam(required = false) String cardName,
-			// レアリティ（enum名を想定：例 "UR"）
 			@RequestParam(required = false) String rarity,
-			// レギュレーション（enum名を想定）
 			@RequestParam(required = false) String regulation,
-			// 状態（enum名を想定）
 			@RequestParam(required = false) String condition,
-			// ステータス（SELLING / SOLD / 空=全て）
 			@RequestParam(required = false) String status,
-			// 封入パック（部分一致想定）
 			@RequestParam(required = false) String packName,
-			// 最低価格
 			@RequestParam(required = false) BigDecimal minPrice,
-			// 最高価格
 			@RequestParam(required = false) BigDecimal maxPrice,
-			// 並び替え（new / priceAsc / priceDesc）
 			@RequestParam(defaultValue = "new") String sort,
-			// ページ
 			@RequestParam(defaultValue = "0") int page,
-			// 1ページ件数
 			@RequestParam(defaultValue = "10") int size,
 			Model model) {
 
-		// ===== enum 安全変換（空や不正値なら null 扱いにする）=====
 		Rarity rarityEnum = parseEnumSafely(rarity, Rarity.class);
 		Regulation regEnum = parseEnumSafely(regulation, Regulation.class);
 		CardCondition condEnum = parseEnumSafely(condition, CardCondition.class);
 		ItemStatus statusEnum = parseEnumSafely(status, ItemStatus.class);
 
-		// 検索
-		// statusEnum が null のときは「全て（= SELLING + SOLD）」扱いにするのは Service 側
 		Page<Item> items = itemService.searchByCardFilters(
 				cardName, rarityEnum, regEnum, condEnum,
 				packName, minPrice, maxPrice, sort,
 				statusEnum,
 				page, size);
 
-		// ★ item_list.html で enum/カテゴリを参照するので常に渡す
 		model.addAttribute("items", items);
 		model.addAttribute("rarities", Rarity.values());
 		model.addAttribute("regulations", Regulation.values());
@@ -218,9 +142,6 @@ public class ItemController {
 		return "pages/items/item_list";
 	}
 
-	/* =========================================================
-	 * 商品詳細表示 GET /items/{id}
-	 * ========================================================= */
 	@GetMapping("/{id}")
 	public String showItemDetail(
 			@PathVariable("id") Long id,
@@ -228,17 +149,14 @@ public class ItemController {
 			Model model) {
 
 		Optional<Item> itemOpt = itemService.getItemById(id);
-		if (itemOpt.isEmpty()) {
+		if (itemOpt.isEmpty())
 			return "redirect:/items";
-		}
 
 		Item item = itemOpt.get();
 		model.addAttribute("item", item);
 
-		// チャット
 		model.addAttribute("chats", chatService.getChatMessagesByItem(id));
 
-		// 出品者評価（GOOD/BAD件数）
 		if (item.getSeller() != null) {
 			model.addAttribute("sellerGoodCount", reviewService.countGoodForSeller(item.getSeller()));
 			model.addAttribute("sellerBadCount", reviewService.countBadForSeller(item.getSeller()));
@@ -247,7 +165,6 @@ public class ItemController {
 		boolean isOwner = false;
 		boolean isFavorited = false;
 
-		// ログインしている場合だけ、所有者判定・お気に入り判定を行う
 		if (userDetails != null) {
 			User currentUser = userService.getUserByEmail(userDetails.getUsername())
 					.orElseThrow(() -> new RuntimeException("User not found"));
@@ -264,29 +181,27 @@ public class ItemController {
 		return "pages/items/item_detail";
 	}
 
-	/* =========================================================
-	 * 出品フォーム表示 GET /items/new
-	 * ========================================================= */
 	@GetMapping("/new")
 	public String showAddItemForm(Model model) {
 
-		// 空の Item をフォームのバインド用に渡す
 		model.addAttribute("item", new Item());
-		// カテゴリの選択肢を渡す
 		model.addAttribute("categories", categoryService.getAllCategories());
 
-		// ★ セレクトボックス用 enum
 		model.addAttribute("shippingDurations", ShippingDuration.values());
 		model.addAttribute("shippingFeeBurdens", ShippingFeeBurden.values());
 		model.addAttribute("shippingRegions", ShippingRegion.values());
 		model.addAttribute("shippingMethods", ShippingMethod.values());
 
-		// ★ カード情報用 enum
 		model.addAttribute("rarities", Rarity.values());
 		model.addAttribute("conditions", CardCondition.values());
 		model.addAttribute("regulations", Regulation.values());
 
-		// 入力フォームのテンプレート名
+		// ✅ cardCategoryId を渡す（CategoryServiceに getCategoryByName が必要）
+		Long cardCategoryId = categoryService.getCategoryByName("カード")
+				.map(Category::getId)
+				.orElse(null);
+		model.addAttribute("cardCategoryId", cardCategoryId);
+
 		return "pages/items/item_form";
 	}
 
@@ -299,7 +214,6 @@ public class ItemController {
 		return cardMasterService.findByParsedNumber(parsed)
 				.map(cm -> {
 					Regulation reg = regulationService.resolve(cm.getPrintedRegulation());
-
 					return new CardAutoFillResponse(
 							cm.getCardName(),
 							cm.getRarity(),
@@ -309,20 +223,15 @@ public class ItemController {
 				.orElse(null);
 	}
 
-	/* =========================================================
-	 * 出品登録 POST /items
-	 * ========================================================= */
 	@PostMapping
 	public String addItem(
 			@AuthenticationPrincipal UserDetails userDetails,
 			@ModelAttribute Item item,
 			@RequestParam("categoryId") Long categoryId,
-
 			@RequestParam("shippingDuration") ShippingDuration shippingDuration,
 			@RequestParam("shippingFeeBurden") ShippingFeeBurden shippingFeeBurden,
 			@RequestParam("shippingRegion") ShippingRegion shippingRegion,
 			@RequestParam("shippingMethod") ShippingMethod shippingMethod,
-
 			@RequestParam(value = "images", required = false) MultipartFile[] imageFiles,
 			RedirectAttributes redirectAttributes) {
 
@@ -333,6 +242,7 @@ public class ItemController {
 
 		User seller = userService.getUserByEmail(userDetails.getUsername())
 				.orElseThrow(() -> new RuntimeException("Seller not found"));
+
 		item.setSeller(seller);
 		item.setShippingDuration(shippingDuration);
 		item.setShippingFeeBurden(shippingFeeBurden);
@@ -346,7 +256,6 @@ public class ItemController {
 		if (category.getName() == null || !"カード".equals(category.getName())) {
 			item.setCardInfo(null);
 		} else {
-			// ★カードカテゴリなら画像1枚目必須（OCR兼代表画像）
 			if (imageFiles == null || imageFiles.length == 0 || imageFiles[0] == null || imageFiles[0].isEmpty()) {
 				redirectAttributes.addFlashAttribute("errorMessage",
 						"カードカテゴリでは商品画像（1枚目）が必須です（OCRに使用します）。");
@@ -360,25 +269,12 @@ public class ItemController {
 					|| item.getCardInfo().getCondition() == null
 					|| item.getCardInfo().getRegulation() == null) {
 
-				redirectAttributes.addFlashAttribute(
-						"errorMessage",
+				redirectAttributes.addFlashAttribute("errorMessage",
 						"カード名・レアリティ・封入パック・状態・レギュレーションはすべて必須です。");
 				return "redirect:/items/new";
 			}
 
 			item.getCardInfo().setItem(item);
-		}
-
-		// ★ ここで「何枚来てるか」を確実にログ出し
-		System.out.println("images param = " + (imageFiles == null ? "null" : imageFiles.length));
-		if (imageFiles != null) {
-			for (int i = 0; i < imageFiles.length; i++) {
-				MultipartFile f = imageFiles[i];
-				System.out.println(i + ": "
-						+ (f == null ? "null" : f.getOriginalFilename())
-						+ " size=" + (f == null ? -1 : f.getSize())
-						+ " empty=" + (f == null ? "?" : f.isEmpty()));
-			}
 		}
 
 		try {
@@ -392,9 +288,6 @@ public class ItemController {
 		return "redirect:/items";
 	}
 
-	/* =========================================================
-	 * 出品編集フォーム表示 GET /items/{id}/edit
-	 * ========================================================= */
 	@GetMapping("/{id}/edit")
 	public String showEditItemForm(
 			@PathVariable("id") Long id,
@@ -402,86 +295,68 @@ public class ItemController {
 			Model model,
 			RedirectAttributes redirectAttributes) {
 
-		// ★ 商品の存在確認
-		Item existingItem = itemService.getItemById(id)
-				.orElse(null);
-
-		if (existingItem == null) {
+		Item existingItem = itemService.getItemById(id).orElse(null);
+		if (existingItem == null)
 			return "redirect:/items";
-		}
 
-		// ★ 未ログインなら編集フォーム表示させない（URL直打ち対策）
 		if (userDetails == null) {
 			redirectAttributes.addFlashAttribute("errorMessage", "ログインしてください。");
 			return "redirect:/login";
 		}
 
-		// ★ ログインユーザー取得
 		User currentUser = userService.getUserByEmail(userDetails.getUsername())
 				.orElseThrow(() -> new RuntimeException("User not found"));
 
-		// ★ 所有者以外は編集不可
 		if (existingItem.getSeller() == null || !existingItem.getSeller().getId().equals(currentUser.getId())) {
 			redirectAttributes.addFlashAttribute("errorMessage", "この商品は編集できません。");
 			return "redirect:/items/" + id;
 		}
 
-		// ★★★ 取引完了（SOLD）なら編集不可（サーバ側の最終防衛ライン） ★★★
 		if (existingItem.getStatus() == ItemStatus.SOLD) {
 			redirectAttributes.addFlashAttribute("errorMessage", "取引完了のため編集できません。");
 			return "redirect:/items/" + id;
 		}
 
-		// 編集フォームに必要なデータを渡す
 		model.addAttribute("item", existingItem);
 		model.addAttribute("categories", categoryService.getAllCategories());
 
-		// ★ 編集時も必要（発送）
 		model.addAttribute("shippingDurations", ShippingDuration.values());
 		model.addAttribute("shippingFeeBurdens", ShippingFeeBurden.values());
 		model.addAttribute("shippingRegions", ShippingRegion.values());
 		model.addAttribute("shippingMethods", ShippingMethod.values());
 
-		// ★ 編集時も必要（カード）
 		model.addAttribute("rarities", Rarity.values());
 		model.addAttribute("conditions", CardCondition.values());
 		model.addAttribute("regulations", Regulation.values());
 
+		Long cardCategoryId = categoryService.getCategoryByName("カード")
+				.map(Category::getId)
+				.orElse(null);
+		model.addAttribute("cardCategoryId", cardCategoryId);
+
 		return "pages/items/item_form";
 	}
 
-	/* =========================================================
-	 * 出品更新 POST /items/{id}
-	 * ========================================================= */
 	@PostMapping("/{id}")
 	public String updateItem(
 			@PathVariable("id") Long id,
 			@AuthenticationPrincipal UserDetails userDetails,
-
 			@RequestParam("name") String name,
 			@RequestParam("description") String description,
 			@RequestParam("price") BigDecimal price,
 			@RequestParam("categoryId") Long categoryId,
-
-			// 画像ファイル（任意）
 			@RequestParam(value = "images", required = false) MultipartFile[] imageFiles,
-
-			// 発送系（フォームにあるなら受け取って更新する）
 			@RequestParam("shippingDuration") ShippingDuration shippingDuration,
 			@RequestParam("shippingFeeBurden") ShippingFeeBurden shippingFeeBurden,
 			@RequestParam("shippingRegion") ShippingRegion shippingRegion,
 			@RequestParam("shippingMethod") ShippingMethod shippingMethod,
-
-			// ★ ここを required=false にして、カード以外でも 400 にならないようにする
 			@RequestParam(value = "cardInfo.cardName", required = false) String cardName,
 			@RequestParam(value = "cardInfo.packName", required = false) String packName,
 			@RequestParam(value = "cardInfo.rarity", required = false) Rarity rarity,
 			@RequestParam(value = "cardInfo.condition", required = false) CardCondition condition,
 			@RequestParam(value = "cardInfo.regulation", required = false) Regulation regulation,
-
 			RedirectAttributes redirectAttributes) {
 
-		// 未ログインなら更新不可
 		if (userDetails == null) {
 			redirectAttributes.addFlashAttribute("errorMessage", "ログインしてください。");
 			return "redirect:/login";
@@ -493,13 +368,11 @@ public class ItemController {
 		User currentUser = userService.getUserByEmail(userDetails.getUsername())
 				.orElseThrow(() -> new RuntimeException("User not found"));
 
-		// 所有者以外は編集不可
 		if (existingItem.getSeller() == null || !existingItem.getSeller().getId().equals(currentUser.getId())) {
 			redirectAttributes.addFlashAttribute("errorMessage", "この商品は編集できません。");
 			return "redirect:/items";
 		}
 
-		// ★★★ 取引完了（SOLD）なら更新不可（URL直打ちのPOSTもブロック） ★★★
 		if (existingItem.getStatus() == ItemStatus.SOLD) {
 			redirectAttributes.addFlashAttribute("errorMessage", "取引完了のため編集できません。");
 			return "redirect:/items/{id}";
@@ -508,39 +381,29 @@ public class ItemController {
 		Category category = categoryService.getCategoryById(categoryId)
 				.orElseThrow(() -> new IllegalArgumentException("Category not found"));
 
-		// 基本情報更新
 		existingItem.setName(name);
 		existingItem.setDescription(description);
 		existingItem.setPrice(price);
 		existingItem.setCategory(category);
 
-		// 発送情報更新
 		existingItem.setShippingDuration(shippingDuration);
 		existingItem.setShippingFeeBurden(shippingFeeBurden);
 		existingItem.setShippingRegion(shippingRegion);
 		existingItem.setShippingMethod(shippingMethod);
 
-		// =========================
-		// ★ カードカテゴリ以外なら CardInfo を消す（サーバ側安全対策）
-		// =========================
 		if (category.getName() == null || !"カード".equals(category.getName())) {
 			existingItem.setCardInfo(null);
 		} else {
-			// =========================
-			// ★ カードカテゴリなら cardInfo 必須（サーバ側でも守る）
-			// =========================
 			if (cardName == null || cardName.isBlank()
 					|| packName == null || packName.isBlank()
 					|| rarity == null
 					|| condition == null
 					|| regulation == null) {
-				redirectAttributes.addFlashAttribute(
-						"errorMessage",
+				redirectAttributes.addFlashAttribute("errorMessage",
 						"カード名・レアリティ・封入パック・状態・レギュレーションはすべて必須です。");
 				return "redirect:/items/{id}/edit";
 			}
 
-			// null なら作る
 			if (existingItem.getCardInfo() == null) {
 				existingItem.setCardInfo(new com.example.evolon.entity.CardInfo());
 			}
@@ -550,8 +413,6 @@ public class ItemController {
 			existingItem.getCardInfo().setRarity(rarity);
 			existingItem.getCardInfo().setCondition(condition);
 			existingItem.getCardInfo().setRegulation(regulation);
-
-			// ownerセット（OneToOne）
 			existingItem.getCardInfo().setItem(existingItem);
 		}
 
@@ -566,16 +427,12 @@ public class ItemController {
 		return "redirect:/items/{id}";
 	}
 
-	/* =========================================================
-	 * 出品削除 POST /items/{id}/delete
-	 * ========================================================= */
 	@PostMapping("/{id}/delete")
 	public String deleteItem(
 			@PathVariable("id") Long id,
 			@AuthenticationPrincipal UserDetails userDetails,
 			RedirectAttributes redirectAttributes) {
 
-		// 未ログインなら削除不可
 		if (userDetails == null) {
 			redirectAttributes.addFlashAttribute("errorMessage", "ログインしてください。");
 			return "redirect:/login";
@@ -587,13 +444,11 @@ public class ItemController {
 		User currentUser = userService.getUserByEmail(userDetails.getUsername())
 				.orElseThrow(() -> new RuntimeException("User not found"));
 
-		// 所有者以外は削除不可
 		if (itemToDelete.getSeller() == null || !itemToDelete.getSeller().getId().equals(currentUser.getId())) {
 			redirectAttributes.addFlashAttribute("errorMessage", "この商品は削除できません。");
 			return "redirect:/items";
 		}
 
-		// ★★★ 取引完了（SOLD）なら削除不可（整合性維持） ★★★
 		if (itemToDelete.getStatus() == ItemStatus.SOLD) {
 			redirectAttributes.addFlashAttribute("errorMessage", "取引完了のため削除できません。");
 			return "redirect:/items/" + id;
@@ -604,16 +459,12 @@ public class ItemController {
 		return "redirect:/items";
 	}
 
-	/* =========================================================
-	 * お気に入り登録 POST /items/{id}/favorite
-	 * ========================================================= */
 	@PostMapping("/{id}/favorite")
 	public String addFavorite(
 			@PathVariable("id") Long itemId,
 			@AuthenticationPrincipal UserDetails userDetails,
 			RedirectAttributes redirectAttributes) {
 
-		// 未ログインなら不可
 		if (userDetails == null) {
 			redirectAttributes.addFlashAttribute("errorMessage", "ログインしてください。");
 			return "redirect:/login";
@@ -632,16 +483,12 @@ public class ItemController {
 		return "redirect:/items/{id}";
 	}
 
-	/* =========================================================
-	 * お気に入り解除 POST /items/{id}/unfavorite
-	 * ========================================================= */
 	@PostMapping("/{id}/unfavorite")
 	public String removeFavorite(
 			@PathVariable("id") Long itemId,
 			@AuthenticationPrincipal UserDetails userDetails,
 			RedirectAttributes redirectAttributes) {
 
-		// 未ログインなら不可
 		if (userDetails == null) {
 			redirectAttributes.addFlashAttribute("errorMessage", "ログインしてください。");
 			return "redirect:/login";
@@ -661,15 +508,12 @@ public class ItemController {
 	}
 
 	private <E extends Enum<E>> E parseEnumSafely(String value, Class<E> enumClass) {
-		if (value == null || value.isBlank()) {
+		if (value == null || value.isBlank())
 			return null;
-		}
 		try {
 			return Enum.valueOf(enumClass, value);
 		} catch (IllegalArgumentException ex) {
-			// ★ 変換できない値が来たら null 扱い（検索条件なし扱い）
 			return null;
 		}
 	}
-
 }

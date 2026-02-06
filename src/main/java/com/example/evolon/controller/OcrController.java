@@ -10,9 +10,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.evolon.domain.enums.Regulation;
+import com.example.evolon.dto.CardAutoFillResponse;
 import com.example.evolon.dto.ParsedCardNumber;
 import com.example.evolon.service.CardMasterService;
 import com.example.evolon.service.OcrService;
+import com.example.evolon.service.RegulationService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +28,7 @@ public class OcrController {
 
 	private final OcrService ocrService;
 	private final CardMasterService cardMasterService;
+	private final RegulationService regulationService;
 
 	@PostMapping
 	public ResponseEntity<Map<String, Object>> ocr(
@@ -34,14 +38,12 @@ public class OcrController {
 		body.put("parsed", null);
 		body.put("card", null);
 
-		// ① 画像が無い / 空 → 400にせず 200で返す（フロントのres.ok落ち防止）
 		if (image == null || image.isEmpty()) {
 			body.put("message", "画像が選択されていません");
 			return ResponseEntity.ok(body);
 		}
 
 		try {
-			// ② OCRして setCode/cardNumber を抽出
 			ParsedCardNumber parsed = ocrService.extractCardNumberOnly(image);
 
 			if (parsed == null || !parsed.isValid()) {
@@ -49,14 +51,18 @@ public class OcrController {
 				return ResponseEntity.ok(body);
 			}
 
-			// ③ デバッグ用に返す（Networkで parsed を確認できる）
 			body.put("parsed", parsed);
 			log.info("[OCR parsed] {}", parsed);
 
-			// ④ DB検索（存在しないなら未登録）
 			return cardMasterService.findByParsedNumber(parsed)
 					.map(card -> {
-						body.put("card", card);
+						Regulation reg = regulationService.resolve(card.getPrintedRegulation());
+
+						body.put("card", new CardAutoFillResponse(
+								card.getCardName(),
+								card.getRarity(),
+								card.getPackName(),
+								reg));
 						body.put("message", "OK");
 						return ResponseEntity.ok(body);
 					})
@@ -66,7 +72,6 @@ public class OcrController {
 					});
 
 		} catch (Exception e) {
-			// ⑤ 例外も 200で返す（UIは「サーバエラー」表示だけで落ちない）
 			log.error("OCR failed", e);
 			body.put("message", "OCRサーバーエラー: " + e.getClass().getSimpleName());
 			return ResponseEntity.ok(body);

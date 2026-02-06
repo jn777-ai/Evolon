@@ -11,7 +11,7 @@
        xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
     <!-- ========================= -->
-    <!-- ツールバー：左=出品/マイページ 右=絞り込み -->
+    <!-- ツールバー：左=出品 右=絞り込み -->
     <!-- ========================= -->
     <div class="toolbar">
       <div class="toolbar-left">
@@ -49,9 +49,6 @@
           <button type="button" class="modal-close" id="closeSearch" aria-label="閉じる">×</button>
         </div>
 
-        <!-- ========================= -->
-        <!-- 検索フォーム -->
-        <!-- ========================= -->
         <form th:action="@{/items/search}" method="get" class="filter-form modal-form">
 
           <div>
@@ -100,25 +97,12 @@
             </select>
           </div>
 
-          <!-- ★ ステータス絞り込み -->
           <div>
             <label>ステータス</label>
             <select name="status">
-				<option value=""
-				  th:selected="${param.status == null or param.status[0] == ''}">
-				  全て
-				</option>
-
-				<option value="SELLING"
-				  th:selected="${param.status != null and param.status[0] == 'SELLING'}">
-				  出品中
-				</option>
-
-				<option value="SOLD"
-				  th:selected="${param.status != null and param.status[0] == 'SOLD'}">
-				  売り切れ
-				</option>
-
+              <option value="" th:selected="${param.status == null or param.status[0] == ''}">全て</option>
+              <option value="SELLING" th:selected="${param.status != null and param.status[0] == 'SELLING'}">出品中</option>
+              <option value="SOLD" th:selected="${param.status != null and param.status[0] == 'SOLD'}">売り切れ</option>
             </select>
           </div>
 
@@ -153,7 +137,6 @@
     <!-- ========================= -->
     <div class="item-grid">
 
-      <!-- 商品1件 -->
       <div class="item-card"
            th:each="item : ${items.content}"
            th:classappend="' category-' + ${
@@ -163,39 +146,35 @@
               (item.category.name == 'デッキ・構築済み' ? 'deck' : 'other')))
            }">
 
-        <a th:href="@{/items/{id}(id=${item.id})}">
+        <a class="item-link" th:href="@{/items/{id}(id=${item.id})}">
 
-          <!-- カテゴリバッジ -->
-          <span class="type-badge"
-                th:text="${item.category != null ? item.category.name : 'その他'}">
-            カード
-          </span>
+          <div class="item-media">
+            <span class="type-badge"
+                  th:text="${item.category != null ? item.category.name : 'その他'}"></span>
 
-          <!-- 画像 -->
-          <img th:if="${item.imageUrl != null}" th:src="${item.imageUrl}" alt="商品画像">
-          <img th:if="${item.imageUrl == null}" th:src="@{/images/placeholder.png}" alt="商品画像">
+            <span class="status-badge"
+                  th:classappend="${item.status != null and item.status.name() == 'SOLD' ? ' sold' : ' selling'}"
+                  th:text="${item.status != null and item.status.name() == 'SOLD' ? '売り切れ' : '出品中'}">
+            </span>
 
-          <!-- 商品名 -->
-          <h3 th:text="${item.name}"></h3>
+            <img th:src="${item.imageUrl != null ? item.imageUrl : '/images/placeholder.png'}"
+                 alt="商品画像">
+          </div>
 
-          <!-- 価格 -->
-          <p class="price"
-             th:text="'¥' + ${#numbers.formatDecimal(item.price,0,'COMMA',0,'POINT')}">
-          </p>
+          <div class="item-body">
+            <h3 class="item-title" th:text="${item.name}">商品名</h3>
 
-          <!-- ステータス表示 -->
-		  <span class="status"
-		        th:classappend="${item.status != null ? item.status.name().toLowerCase() : 'selling'}"
-		        th:text="${
-		          item.status == null ? '出品中' :
-		          (item.status.name() == 'SELLING' ? '出品中' : '売り切れ')
-		        }">
-		  </span>
+            <div class="item-bottom">
+              <p class="price"
+                 th:text="'¥' + ${#numbers.formatDecimal(item.price,0,'COMMA',0,'POINT')}">¥0</p>
+            </div>
+          </div>
+
         </a>
       </div>
 
       <!-- 検索結果なし -->
-      <div th:if="${items.totalElements == 0}">
+      <div th:if="${items.totalElements == 0}" class="empty-state">
         <p>商品が見つかりませんでした。</p>
       </div>
     </div>
