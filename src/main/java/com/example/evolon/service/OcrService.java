@@ -28,130 +28,96 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class OcrService {
 
-	/**
-	 * カード番号専用OCR（下部領域のみ）
-	 * 例: sv8a 212/187 → setCode=sv8a, cardNumber=212/187
-	 */
 	public ParsedCardNumber extractCardNumberOnly(MultipartFile imageFile) throws IOException {
-
 		BufferedImage original = ImageIO.read(imageFile.getInputStream());
 		if (original == null) {
 			throw new IllegalArgumentException("画像の読み込みに失敗しました");
 		}
 
-		// ① 下部領域を切り出し
-		BufferedImage cropped = cropBottomArea(original);
+		// 1. 高解像度写真対策（1600px以上の場合はリサイズしてメモリ負荷を軽減）
+		BufferedImage workingImage = original;
+		if (original.getWidth() > 1600) {
+			int targetW = 1200;
+			int targetH = (int) (original.getHeight() * (1200.0 / original.getWidth()));
+			BufferedImage resized = new BufferedImage(targetW, targetH, BufferedImage.TYPE_INT_RGB);
+			Graphics g = resized.getGraphics();
+			g.drawImage(original, 0, 0, targetW, targetH, null);
+			g.dispose();
+			workingImage = resized;
+		}
 
-		// ② グレースケール化
-		BufferedImage gray = new BufferedImage(
-				cropped.getWidth(),
-				cropped.getHeight(),
-				BufferedImage.TYPE_BYTE_GRAY);
+		// 2. 読み取り範囲の切り出し（写真の余白を考慮し下部45%を抽出）
+		int w = workingImage.getWidth();
+		int h = workingImage.getHeight();
+		int cropY = (int) (h * 0.55);
+		int cropHeight = h - cropY;
+		BufferedImage cropped = workingImage.getSubimage(0, cropY, w, cropHeight);
 
-		Graphics g = gray.getGraphics();
-		g.drawImage(cropped, 0, 0, null);
-		g.dispose();
+		// 3. OCR用前処理（グレースケール化）
+		BufferedImage processed = new BufferedImage(w, cropHeight, BufferedImage.TYPE_BYTE_GRAY);
+		Graphics g2 = processed.getGraphics();
+		g2.drawImage(cropped, 0, 0, null);
+		g2.dispose();
 
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		ImageIO.write(gray, "png", baos);
+		ImageIO.write(processed, "png", baos);
 		ByteString imgBytes = ByteString.copyFrom(baos.toByteArray());
 
-		// ③ Vision API（TEXT_DETECTION）
-		Image image = Image.newBuilder()
-				.setContent(imgBytes)
-				.build();
-
-		Feature feature = Feature.newBuilder()
-				.setType(Feature.Type.TEXT_DETECTION)
-				.build();
-
+		// 4. Vision APIリクエスト（文書読み取りモード）
+		Image image = Image.newBuilder().setContent(imgBytes).build();
+		Feature feature = Feature.newBuilder().setType(Feature.Type.DOCUMENT_TEXT_DETECTION).build();
 		AnnotateImageRequest request = AnnotateImageRequest.newBuilder()
 				.setImage(image)
 				.addFeatures(feature)
 				.build();
 
 		try (ImageAnnotatorClient client = ImageAnnotatorClient.create()) {
-
 			BatchAnnotateImagesResponse response = client.batchAnnotateImages(List.of(request));
 			AnnotateImageResponse res = response.getResponses(0);
 
-			if (res.hasError()) {
+			if (res.hasError())
 				throw new RuntimeException("Vision API Error: " + res.getError().getMessage());
-			}
-
-			if (res.getTextAnnotationsList().isEmpty()) {
-				log.warn("カード番号OCR結果なし");
+			if (res.getTextAnnotationsList().isEmpty())
 				return ParsedCardNumber.invalid();
-			}
 
 			String ocrText = res.getTextAnnotations(0).getDescription();
-			log.info("===== CARD NUMBER OCR RAW =====\n{}", ocrText);
 
-			ParsedCardNumber parsed = parseCardNumber(ocrText);
-			log.info("===== CARD NUMBER OCR PARSED ===== {}", parsed);
+			// 5. テキストの正規化（空白除去と特定パターンの整形）
+			String formattedText = ocrText.toLowerCase().replaceAll("\\s+", "");
+			formattedText = formattedText.replaceAll("(\\d+)/(\\d+)", " $1 / $2 ");
 
-			return parsed;
+			return parseCardNumber(formattedText);
 		}
 	}
 
-	/* =========================
-	 * 下部約28%を切り出す（カード番号領域）
-	 * ========================= */
-	private BufferedImage cropBottomArea(BufferedImage original) {
-		int w = original.getWidth();
-		int h = original.getHeight();
-
-		int cropY = (int) (h * 0.72);
-		int cropHeight = h - cropY;
-
-		return original.getSubimage(0, cropY, w, cropHeight);
-	}
-
-	/* =========================
-	 * OCR文字列 → setCode / cardNumber 抽出（安定版）
-	 * ========================= */
 	private ParsedCardNumber parseCardNumber(String text) {
-
-		if (text == null || text.isBlank()) {
-			log.warn("❌ カード番号抽出失敗: 空文字");
+		if (text == null || text.isBlank())
 			return ParsedCardNumber.invalid();
-		}
 
-		// ① 全体正規化（全角/空白/スラッシュなど）
-		String cleaned = text
-				.replaceAll("(?m)^\\s*[HIJ]\\s+", "") // 行頭 H/I/J + 空白を除去
-				.replace("／", "/")
-				.replace("　", " ")
-				.trim();
+		String cleaned = text.replaceAll("\\s+", " ");
 
-		// ② setCode抽出（sv/m/v を許容、誤認識補正）
-		Pattern setCodePattern = Pattern.compile("\\b(sv|m|v)[a-z0-9]{1,4}\\b", Pattern.CASE_INSENSITIVE);
+		// セットコード抽出
+		Pattern setCodePattern = Pattern.compile("(sv|m|v)[a-z0-9]{1,5}", Pattern.CASE_INSENSITIVE);
 		Matcher setCodeMatcher = setCodePattern.matcher(cleaned);
 
 		String setCode = null;
 		if (setCodeMatcher.find()) {
 			setCode = setCodeMatcher.group().toLowerCase();
-
-			// v8a → sv8a
-			if (setCode.startsWith("v")) {
+			if (setCode.startsWith("v"))
 				setCode = "s" + setCode;
-			}
-
-			// OCRの8↔b誤認識補正（必要なら追加）
 			setCode = setCode.replace("svba", "sv8a");
 		}
 
-		// ③ cardNumber抽出（空白を許容）
+		// カード番号抽出
 		Pattern numberPattern = Pattern.compile("(\\d{1,3})\\s*/\\s*(\\d{1,3})");
 		Matcher numberMatcher = numberPattern.matcher(cleaned);
 
 		if (setCode != null && numberMatcher.find()) {
 			String cardNumber = numberMatcher.group(1) + "/" + numberMatcher.group(2);
-			log.info("🎯 抽出成功 setCode={}, cardNumber={}", setCode, cardNumber);
+			log.info("🎯 抽出成功: setCode={}, cardNumber={}", setCode, cardNumber);
 			return new ParsedCardNumber(setCode, cardNumber);
 		}
 
-		log.warn("❌ カード番号抽出失敗: cleaned={}", cleaned);
 		return ParsedCardNumber.invalid();
 	}
 }
