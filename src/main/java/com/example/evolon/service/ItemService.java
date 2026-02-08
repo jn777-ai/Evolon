@@ -37,25 +37,20 @@ public class ItemService {
 	 * 商品一覧検索
 	 * SELLING + SOLD を表示する
 	 * ========================= */
-	public Page<Item> searchItems(String keyword, Long categoryId, ItemStatus status, int page, int size) {
-
-		Pageable pageable = PageRequest.of(page, size);
+	public Page<Item> searchItems(String keyword, Long categoryId, ItemStatus status, Pageable pageable) {
 
 		List<ItemStatus> statuses;
 
 		if (status == null) {
-			// 「全て」
 			statuses = List.of(
 					ItemStatus.SELLING,
 					ItemStatus.PAYMENT_DONE,
 					ItemStatus.SOLD);
 		} else if (status == ItemStatus.SOLD) {
-			// 「売り切れ」
 			statuses = List.of(
 					ItemStatus.PAYMENT_DONE,
 					ItemStatus.SOLD);
 		} else {
-			// 「出品中」
 			statuses = List.of(status);
 		}
 
@@ -94,19 +89,21 @@ public class ItemService {
 			BigDecimal minPrice,
 			BigDecimal maxPrice,
 			String sort,
-			ItemStatus status, // ★追加（Controller から渡ってくる）
-			int page,
-			int size) {
+			ItemStatus status,
+			Pageable pageable) {
+		// ✅ sortはクエリ文字列から来るのでここで反映（page/sizeはそのまま使う）
+		Pageable pageableWithSort = PageRequest.of(
+				pageable.getPageNumber(),
+				pageable.getPageSize(),
+				ItemSortHelper.toSort(sort));
 
-		Pageable pageable = PageRequest.of(page, size, ItemSortHelper.toSort(sort));
-
-		// ★ status が未指定なら「全て（SELLING + SOLD）」にする
+		// ✅ status が未指定なら全て（出品中+売り切れ） ※必要に応じて PAYMENT_DONE も含める
 		List<ItemStatus> statuses = (status == null)
 				? List.of(ItemStatus.SELLING, ItemStatus.SOLD)
 				: List.of(status);
 
 		return itemRepository.searchByCardFilters(
-				statuses, // ★Listで渡す（Repository 側は IN :statuses）
+				statuses,
 				hasText(cardName) ? cardName : null,
 				rarity,
 				regulation,
@@ -114,7 +111,7 @@ public class ItemService {
 				hasText(packName) ? packName : null,
 				minPrice,
 				maxPrice,
-				pageable);
+				pageableWithSort);
 	}
 
 	/* =========================

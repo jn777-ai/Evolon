@@ -1,57 +1,116 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
-  <meta charset="UTF-8">
-  <title>プロフィール編集</title>
-</head>
-<body>
+<html lang="ja"
+      xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/layout :: layout(
+        title='プロフィール編集',
+        content=~{::content},
+        showHeader=true,
+        showFooter=true
+      )}">
 
-<h1>プロフィール編集</h1>
+<th:block th:fragment="content">
 
-<form th:action="@{/my-page/profile/edit}" th:object="${profileEditForm}" method="post">
-  <input type="hidden" name="returnTo" th:value="${returnTo}"/>
+  <div class="page-wrap profile-edit">
 
-  <div>
-    <label>ニックネーム</label>
-    <input type="text" th:field="*{nickname}">
+    <th:block th:with="
+      backUrl=${(backTo != null and backTo != '') ? backTo : '/items'},
+      cancelUrl=${'/items'}
+    ">
+
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">プロフィール編集</h1>
+          <p class="page-sub">表示名・住所などを更新できます</p>
+        </div>
+
+        <!-- ✅ 戻る（元の場所へ） -->
+        <a th:href="@{${backUrl}}" class="btn btn--ghost">戻る</a>
+      </div>
+
+      <!-- 全体パネル -->
+      <div class="panel panel--page">
+
+        <!-- ✅ 保存だけがPOSTされるフォーム -->
+        <form th:action="@{/my-page/profile/edit}"
+              th:object="${profileEditForm}"
+              method="post"
+              class="form-shell">
+
+          <!-- ✅ 保存後に returnTo へ戻す用 -->
+          <input type="hidden" name="returnTo" th:value="${returnTo}"/>
+          <!-- ✅ backTo も保持（必要なら） -->
+          <input type="hidden" name="backTo" th:value="${backTo}"/>
+
+          <!-- 基本情報 -->
+          <div class="card">
+            <div class="card-head">
+              <div class="card-title">
+                <h2>基本情報</h2>
+                <p>ニックネームと氏名</p>
+              </div>
+            </div>
+
+            <div class="grid2">
+              <div class="field field--full">
+                <label>ニックネーム <span class="tag tag--edit">表示名</span></label>
+                <input type="text" th:field="*{nickname}" placeholder="例：じょにー">
+              </div>
+
+              <div class="field">
+                <label>姓</label>
+                <input type="text" th:field="*{lastName}" placeholder="例：ぽけ">
+              </div>
+
+              <div class="field">
+                <label>名</label>
+                <input type="text" th:field="*{firstName}" placeholder="例：太郎">
+              </div>
+            </div>
+          </div>
+
+          <!-- 住所 -->
+          <div class="card">
+            <div class="card-head">
+              <div class="card-title">
+                <h2>住所</h2>
+                <p>配送や取引で使う住所</p>
+              </div>
+            </div>
+
+            <div class="grid2">
+              <div class="field">
+                <label>郵便番号</label>
+                <input type="text" th:field="*{postalCode}"
+                       placeholder="123-4567" inputmode="numeric">
+                <p class="subnote">ハイフンあり（例：123-4567）</p>
+              </div>
+
+              <div class="field">
+                <label>住所</label>
+                <input type="text" th:field="*{address}"
+                       placeholder="東京都〇〇区〇〇 1-2-3">
+              </div>
+            </div>
+          </div>
+
+          <!-- ✅ 保存ボタンだけここに置く（キャンセルは form 外） -->
+          <div class="footer-actions footer-actions--sticky">
+            <div class="right">
+              <button type="submit" class="btn btn--primary">保存する</button>
+            </div>
+          </div>
+
+        </form>
+
+        <!-- ✅ キャンセルはform外：絶対にPOSTされない -->
+        <div class="footer-actions footer-actions--sticky">
+          <a th:href="@{${cancelUrl}}" class="btn btn--ghost">キャンセル</a>
+        </div>
+
+      </div>
+
+    </th:block>
   </div>
 
-  <div>
-    <label>プロフィール画像URL（仮）</label>
-    <input type="text" th:field="*{profileImageUrl}">
-  </div>
-
-  <hr>
-
-  <div>
-    <label>姓</label>
-    <input type="text" th:field="*{lastName}">
-  </div>
-
-  <div>
-    <label>名</label>
-    <input type="text" th:field="*{firstName}">
-  </div>
-
-  <div>
-    <label>郵便番号</label>
-    <input type="text" th:field="*{postalCode}" placeholder="123-4567">
-  </div>
-
-  <div>
-    <label>住所</label>
-    <input type="text" th:field="*{address}">
-  </div>
-
-  <div>
-    <label>自己紹介</label>
-    <textarea th:field="*{bio}" rows="5"></textarea>
-  </div>
-
-  <button type="submit">保存</button>
-</form>
-
-<p><a th:href="@{/my-page}">マイページに戻る</a></p>
-
-</body>
+</th:block>
 </html>

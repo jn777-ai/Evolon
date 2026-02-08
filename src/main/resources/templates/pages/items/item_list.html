@@ -15,7 +15,14 @@
     <!-- ========================= -->
     <div class="toolbar">
       <div class="toolbar-left">
-        <a th:href="@{/items/new}" class="button button--primary">商品を出品</a>
+
+        <!-- ✅ 出品：プロフィール未入力ならJSで確認→プロフィール編集へ -->
+        <a th:href="@{/items/new}"
+           class="button button--primary js-sell-link"
+           th:attr="data-profile-ok=${isProfileComplete}">
+          商品を出品
+        </a>
+
       </div>
 
       <div class="toolbar-right">
@@ -234,9 +241,10 @@
     </div>
 
     <!-- ========================= -->
-    <!-- モーダル開閉JS -->
+    <!-- JS：モーダル開閉 + 出品前プロフィール案内 -->
     <!-- ========================= -->
     <script>
+      // ===== モーダル開閉 =====
       const modal = document.getElementById('searchModal');
       const openBtn = document.getElementById('openSearch');
       const closeBtn = document.getElementById('closeSearch');
@@ -263,6 +271,28 @@
       window.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') closeModal();
       });
+
+	  (function(){
+	    const link = document.querySelector('.js-sell-link');
+	    if (!link) return;
+
+	    link.addEventListener('click', (e) => {
+	      const ok = (link.dataset.profileOk === 'true');
+	      if (ok) return;
+
+	      e.preventDefault();
+
+	      const go = confirm(
+	        '出品するにはプロフィール入力が必要です。\n' +
+	        'プロフィール編集画面へ移動しますか？'
+	      );
+
+	      if (go) {
+	        window.location.href = '/my-page/profile/edit?returnTo=/items/new';
+	      }
+	    });
+	  })();
+
     </script>
 
   </div>

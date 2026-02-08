@@ -81,7 +81,7 @@ public class UserController {
 		//  サマリ数字
 		// =========================
 		model.addAttribute("sellingCount", itemService.countSellingBySeller(user)); // 出品中
-		model.addAttribute("tradingCount", itemService.countTradingBySeller(user)); // 取引中（なければ0でOK）
+		model.addAttribute("tradingCount", itemService.countTradingBySeller(user)); // 取引中
 		model.addAttribute("soldCount", itemService.countSoldBySeller(user)); // 取引完了
 		model.addAttribute("favoriteCount", favoriteService.countFavoritesByUser(user)); // お気に入り
 
@@ -90,11 +90,13 @@ public class UserController {
 
 	/* =====================
 	 * プロフィール編集（表示）
+	 * GET /my-page/profile/edit
 	 * ===================== */
 	@GetMapping("/profile/edit")
 	public String editProfile(
 			@AuthenticationPrincipal UserDetails userDetails,
 			@RequestParam(value = "returnTo", required = false) String returnTo,
+			@RequestParam(value = "backTo", required = false) String backTo,
 			Model model) {
 
 		User user = getLoginUser(userDetails);
@@ -109,7 +111,14 @@ public class UserController {
 		form.setBio(user.getBio());
 
 		model.addAttribute("profileEditForm", form);
+
+		// 画面側で使う（戻り先判定用）
 		model.addAttribute("returnTo", returnTo);
+		model.addAttribute("backTo", backTo);
+
+		// 「どこかから強制入力で飛ばされた」判定（必要なら）
+		boolean forceProfile = !isProfileComplete(user) && !isBlank(returnTo);
+		model.addAttribute("forceProfile", forceProfile);
 
 		return "pages/mypage/profile_edit";
 	}
@@ -122,10 +131,12 @@ public class UserController {
 			@AuthenticationPrincipal UserDetails userDetails,
 			ProfileEditForm profileEditForm,
 			@RequestParam(value = "returnTo", required = false) String returnTo,
+			@RequestParam(value = "backTo", required = false) String backTo,
 			RedirectAttributes ra) {
 
 		User user = getLoginUser(userDetails);
 
+		// ニックネーム未入力ならユーザー名で補完
 		if (isBlank(profileEditForm.getNickname())) {
 			profileEditForm.setNickname(user.getName());
 		}
@@ -133,9 +144,11 @@ public class UserController {
 		userService.updateProfile(user, profileEditForm);
 		ra.addFlashAttribute("successMessage", "プロフィールを更新しました");
 
-		if (!isBlank(returnTo)) {
+		// ✅ 優先順位：returnTo → backTo → /my-page
+		if (!isBlank(returnTo))
 			return "redirect:" + returnTo;
-		}
+		if (!isBlank(backTo))
+			return "redirect:" + backTo;
 		return "redirect:/my-page";
 	}
 
@@ -183,10 +196,7 @@ public class UserController {
 
 		User user = getLoginUser(userDetails);
 
-		model.addAttribute(
-				"items",
-				itemService.getItemsBySeller(user));
-
+		model.addAttribute("items", itemService.getItemsBySeller(user)); // ←ここ
 		return "pages/mypage/seller_items";
 	}
 
@@ -253,4 +263,11 @@ public class UserController {
 		return s == null || s.trim().isEmpty();
 	}
 
+	// ✅ UserController内に追加（ItemControllerと同じ判定ルール）
+	private boolean isProfileComplete(User u) {
+		return !isBlank(u.getLastName())
+				&& !isBlank(u.getFirstName())
+				&& !isBlank(u.getPostalCode())
+				&& !isBlank(u.getAddress());
+	}
 }
