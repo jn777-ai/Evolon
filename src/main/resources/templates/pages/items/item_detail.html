@@ -38,7 +38,13 @@
 
         <div class="itemd-meta">
           <span class="itemd-meta__label">出品者</span>
-          <span class="itemd-meta__value" th:text="${item.seller.name}">seller</span>
+		  <span class="itemd-meta__value"
+		        th:text="${(item.seller.nickname != null and !item.seller.nickname.isBlank())
+		                   ? item.seller.nickname
+		                   : item.seller.name}">
+		    seller
+		  </span>
+
           <span class="itemd-dot">•</span>
           <span class="status selling" th:text="${item.status.label}">出品中</span>
         </div>
@@ -187,15 +193,31 @@
 
             <div class="itemd-actions">
 
+              <!-- ✅ プロフィール未完了：案内してプロフィール編集へ -->
+              <div sec:authorize="isAuthenticated()"
+                   th:if="${item.status.name() == 'SELLING' and !isOwner and !isProfileComplete}"
+                   class="itemd-notice">
+                <div class="itemd-notice__title">購入前にプロフィール入力が必要です</div>
+                <div class="itemd-notice__text">氏名・住所が未入力のため、このまま購入できません。</div>
+
+                <a th:href="@{/my-page/profile/edit(returnTo=${'/items/' + item.id})}"
+                   class="button button--primary itemd-btn">
+                  プロフィールを入力する
+                </a>
+              </div>
+
+              <!-- ✅ プロフィール完了：通常の購入（JSが読めるdata付き） -->
               <form sec:authorize="isAuthenticated()"
-                    th:if="${item.status.name() == 'SELLING' and !isOwner}"
+                    th:if="${item.status.name() == 'SELLING' and !isOwner and isProfileComplete}"
                     th:action="@{/orders/initiate}" method="post"
-                    onsubmit="return confirm('本当にこの商品を購入しますか？');">
+                    class="js-buy-form"
+                    th:attr="data-profile-ok=${isProfileComplete}">
                 <input type="hidden" name="itemId" th:value="${item.id}">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                 <button type="submit" class="button button--primary itemd-btn">購入する</button>
               </form>
 
+              <!-- お気に入り -->
               <div sec:authorize="isAuthenticated()" th:if="${!isOwner and item.status.name() != 'SOLD'}">
 
                 <form th:if="${isFavorited}" th:action="@{/items/{id}/unfavorite(id=${item.id})}" method="post">
@@ -209,16 +231,44 @@
                 </form>
               </div>
 
-              <div th:if="${isOwner}" class="itemd-owner">
-				<a th:if="${isOwner and item.status.name() == 'SELLING'}"
-				   th:href="@{/items/{id}/edit(id=${item.id})}"
-				   class="btn btn-outline-primary">
-				  編集する
-				</a>
-              </div>
+
+			  <!-- オーナー -->
+			  <div th:if="${isOwner and item.status.name() == 'SELLING'}" class="itemd-edit-btn">
+			    <a th:href="@{/items/{id}/edit(id=${item.id})}" class="itemd-edit-btn">
+			      編集する
+			    </a>
+			  </div>
+
 
             </div>
           </section>
+		  
+		  <!-- 出品者の評価 -->
+		  <section class="itemd-card itemd-reviewcard" th:if="${seller != null}">
+		    <div class="panel-head">
+		      <h2 class="panel-title">出品者の評価</h2>
+		      <span class="chip"
+		            th:text="${sellerReviewStats != null ? sellerReviewStats.reviewCount : 0} + '件'">0件</span>
+		    </div>
+
+		    <div th:if="${sellerReviewStats != null and sellerReviewStats.reviewCount > 0}" class="rating-row">
+		      <div class="star-rating" th:style="'--rating:' + ${sellerReviewStats.avgRating}">
+		        <span class="stars">★★★★★</span>
+		        <span class="stars filled">★★★★★</span>
+		      </div>
+
+		      <div class="rating-score">
+		        <span th:text="${#numbers.formatDecimal(sellerReviewStats.avgRating,1,1)}">5.0</span>
+		        <span class="muted">/ 5.0</span>
+		      </div>
+		    </div>
+
+		    <p th:if="${sellerReviewStats == null or sellerReviewStats.reviewCount == 0}" class="muted">
+		      まだ評価はありません
+		    </p>
+		  </section>
+
+
 
           <!-- チャット -->
           <section class="itemd-card itemd-chatcard">
@@ -241,8 +291,13 @@
                    th:classappend="${isMe} ? ' is-me' : (${isSeller} ? ' is-seller' : ' is-other')">
 
                 <div class="itemd-chatmeta">
-                  <span class="itemd-chatname"
-                        th:text="${chat.sender != null ? chat.sender.name : '不明'}">名前</span>
+					<span class="itemd-chatname"
+					      th:text="${chat.sender != null
+					        ? ((chat.sender.nickname != null and !#strings.isEmpty(chat.sender.nickname))
+					            ? chat.sender.nickname
+					            : chat.sender.name)
+					        : '不明'}">名前</span>
+
                   <span class="itemd-chattime"
                         th:text="${#temporals.format(chat.createdAt,'yyyy/MM/dd HH:mm')}">time</span>
                 </div>
@@ -342,6 +397,24 @@
       const box = document.getElementById('chatBox');
       if (!box) return;
       box.scrollTop = box.scrollHeight;
+    })();
+
+    // ✅ 購入：プロフィール未入力なら案内（基本は上の分岐で出ないが、保険として残してOK）
+    (function(){
+      const form = document.querySelector('.js-buy-form');
+      if (!form) return;
+
+      const ok = (form.dataset.profileOk === 'true');
+
+      form.addEventListener('submit', (e) => {
+        if (!ok) {
+          e.preventDefault();
+          alert('購入手続きの前にプロフィール入力が必要です。');
+        } else {
+          const go = confirm('本当にこの商品を購入しますか？');
+          if (!go) e.preventDefault();
+        }
+      });
     })();
   </script>
 

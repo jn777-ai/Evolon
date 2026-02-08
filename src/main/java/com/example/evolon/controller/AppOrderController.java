@@ -109,7 +109,7 @@ public class AppOrderController {
 		model.addAttribute("clientSecret", clientSecret);
 		model.addAttribute("paymentIntentId", paymentIntentId);
 		model.addAttribute("stripePublicKey", stripePublicKey);
-		return "payment_confirmation";
+		return "pages/transaction/payment_confirmation";
 	}
 
 	/* =====================
@@ -188,7 +188,7 @@ public class AppOrderController {
 		model.addAttribute("buyerReviewed", buyerReviewed);
 		model.addAttribute("sellerReviewed", sellerReviewed);
 
-		return "order_detail";
+		return "pages/transaction/order_detail";
 	}
 
 	/* =====================

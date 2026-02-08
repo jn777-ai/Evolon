@@ -1,63 +1,77 @@
 <!DOCTYPE html>
-<html lang="ja" xmlns:th="http://www.thymeleaf.org">
-<head>
-  <meta charset="UTF-8">
-  <title>アカウント管理</title>
-  <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
-<body>
-<div class="container">
+<html lang="ja"
+      xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/layout :: layout(
+        title='アカウント管理',
+        content=~{::content},
+        showHeader=true,
+        showFooter=true
+      )}">
 
-  <h1>アカウント管理</h1>
+<th:block th:fragment="content">
+  <div class="account-page">
+    <div class="container">
 
-  <p class="muted"
-     th:text="${(user != null && user.nickname != null) ? user.nickname : (user != null ? user.name : '')} + ' さんの設定'">
-  </p>
-
-  <div class="card">
-    <h2>プロフィール</h2>
-    <p class="muted">表示名・住所・自己紹介など</p>
-    <a th:href="@{/my-page/profile/edit(returnTo='/my-page/account')}" class="button">プロフィール編集</a>
-  </div>
-
-  <div class="card">
-    <h2>ログイン情報</h2>
-
-    <div class="row-actions">
-      <div>
-        <h3>メールアドレス変更</h3>
-        <p class="muted">ログインに使うメールアドレスを変更します</p>
+      <div class="account-hero">
+        <div>
+          <h1 class="page-title">アカウント管理</h1>
+          <p class="page-sub"
+             th:text="${(user != null && user.nickname != null) ? user.nickname : (user != null ? user.name : '')} + ' さんの設定'">
+          </p>
+        </div>
       </div>
-      <a th:href="@{/account/email}" class="button secondary">変更</a>
-    </div>
 
-    <hr>
+      <!-- Settings Group -->
+      <div class="settings-panel">
+        <div class="settings-group">
 
-    <div class="row-actions">
-      <div>
-        <h3>パスワード変更</h3>
-        <p class="muted">パスワードを変更します</p>
+          <a th:href="@{/my-page/profile/edit(returnTo='/my-page/account')}" class="setting-card">
+            <div class="setting-icon">👤</div>
+            <div class="setting-body">
+              <div class="setting-title">プロフィール</div>
+              <div class="setting-desc">表示名・住所の設定</div>
+            </div>
+            <div class="setting-arrow">›</div>
+          </a>
+
+          <a th:href="@{/account/email}" class="setting-card">
+            <div class="setting-icon">📧</div>
+            <div class="setting-body">
+              <div class="setting-title">メールアドレス変更</div>
+              <div class="setting-desc">ログインに使うメールアドレス</div>
+            </div>
+            <div class="setting-arrow">›</div>
+          </a>
+
+          <a th:href="@{/account/password}" class="setting-card">
+            <div class="setting-icon">🔑</div>
+            <div class="setting-body">
+              <div class="setting-title">パスワード変更</div>
+              <div class="setting-desc">パスワードの再設定</div>
+            </div>
+            <div class="setting-arrow">›</div>
+          </a>
+
+        </div>
       </div>
-      <a th:href="@{/account/password}" class="button secondary">変更</a>
+
+      <!-- Danger Zone -->
+      <div class="danger-zone">
+        <div class="danger-title">⚠️ 危険な操作</div>
+
+        <a th:href="@{/account/delete/confirm}" class="setting-card danger">
+          <div class="setting-icon">🚪</div>
+          <div class="setting-body">
+            <div class="setting-title">退会手続き</div>
+            <div class="setting-desc">アカウントを削除します</div>
+          </div>
+          <div class="setting-arrow">›</div>
+        </a>
+      </div>
+
+      <a th:href="@{/my-page}" class="back-link">← マイページへ戻る</a>
+
     </div>
   </div>
-
-  <div class="card">
-    <h2>通知設定</h2>
-    <p class="muted">通知のON/OFFや連携設定</p>
-    <a th:href="@{/account/notifications}" class="button secondary">通知設定</a>
-  </div>
-
-  <div class="danger-zone">
-    <h2>退会</h2>
-    <p class="muted">退会するとログインできなくなります。取引履歴などは保持される場合があります。</p>
-    <!-- ここは controller と一致させる -->
-    <a th:href="@{/account/delete/confirm}" class="button danger">退会手続きへ</a>
-  </div>
-
-  <div class="spacer-24"></div>
-  <a th:href="@{/my-page}" class="button secondary">マイページへ戻る</a>
-
-</div>
-</body>
+</th:block>
 </html>

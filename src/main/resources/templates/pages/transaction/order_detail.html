@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ja"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8">
+  <title>取引詳細</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+
+<body class="app-body">
+<main class="app-main">
+  <div class="order-page">
+
+    <a th:href="@{/my-page/orders}" class="order-back">← 取引一覧に戻る</a>
+
+    <!-- ====== HERO ====== -->
+    <section class="panel order-hero">
+      <div>
+        <h1 class="order-hero__title">取引詳細</h1>
+
+        <div class="order-hero__meta">
+          <span class="chip"
+                th:text="${isSeller ? '出品者として表示中' : '購入者として表示中'}">表示中</span>
+
+          <span class="status-pill"
+                th:classappend="${order.orderStatus != null and order.orderStatus.name() == 'COMPLETED'
+                                 ? ' is-sold' : ' is-selling'}"
+                th:text="${order.orderStatus != null ? order.orderStatus.label : '—'}">ステータス</span>
+
+          <span class="chip"
+                th:text="${'注文ID: ' + order.id}">注文ID</span>
+        </div>
+      </div>
+
+      <div class="order-hero__right">
+        <a th:if="${order.item != null}"
+           th:href="@{/items/{id}(id=${order.item.id})}"
+           class="button secondary">商品詳細へ</a>
+      </div>
+    </section>
+
+    <!-- ====== 商品サマリ + ステップ ====== -->
+    <section class="panel">
+      <div class="order-summary">
+        <img class="order-summary__img"
+             th:src="${(order.item != null and order.item.imageUrl != null) ? order.item.imageUrl : '/images/placeholder.png'}"
+             alt="商品画像">
+
+        <div>
+          <p class="order-summary__name"
+             th:text="${order.item != null ? order.item.name : '（商品なし）'}">商品名</p>
+
+          <div class="order-summary__price"
+               th:text="${'¥' + #numbers.formatDecimal(order.price,0,'COMMA',0,'POINT')}">¥0</div>
+
+          <div class="order-summary__sub">
+            <!-- 出品者として見ている → 相手は購入者 -->
+            <span th:if="${isSeller}">
+              購入者：
+              <b th:text="${order.buyer != null
+                  ? ((order.buyer.nickname != null and !#strings.isEmpty(order.buyer.nickname))
+                      ? order.buyer.nickname
+                      : order.buyer.name)
+                  : '—'}">—</b>
+            </span>
+
+            <!-- 購入者として見ている → 相手は出品者（order.item.seller を想定） -->
+            <span th:if="${isBuyer}">
+              出品者：
+              <b th:text="${(order.item != null and order.item.seller != null)
+                  ? ((order.item.seller.nickname != null and !#strings.isEmpty(order.item.seller.nickname))
+                      ? order.item.seller.nickname
+                      : order.item.seller.name)
+                  : '—'}">—</b>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ステッパー：購入→発送→到着→評価→完了（CANCELLED対応） -->
+      <div style="margin-top:12px;">
+        <div class="order-steps"
+             th:if="${order.orderStatus != null and order.orderStatus.name() != 'CANCELLED'}">
+
+          <!-- ① 購入 -->
+          <div class="order-step"
+               th:classappend="${order.orderStatus.name() == 'PAYMENT_PENDING' ? ' is-active'
+                  : (order.orderStatus.name() != 'PAYMENT_PENDING' ? ' is-done' : '')}">
+            <span class="dot">1</span><span>購入</span>
+          </div>
+          <span class="order-bar"></span>
+
+          <!-- ② 発送 -->
+          <div class="order-step"
+               th:classappend="${order.orderStatus.name() == 'PURCHASED' ? ' is-active'
+                  : ((order.orderStatus.name() == 'SHIPPED' or order.orderStatus.name() == 'DELIVERED' or order.orderStatus.name() == 'COMPLETED')
+                      ? ' is-done' : '')}">
+            <span class="dot">2</span><span>発送</span>
+          </div>
+          <span class="order-bar"></span>
+
+          <!-- ③ 到着 -->
+          <div class="order-step"
+               th:classappend="${order.orderStatus.name() == 'SHIPPED' ? ' is-active'
+                  : ((order.orderStatus.name() == 'DELIVERED' or order.orderStatus.name() == 'COMPLETED')
+                      ? ' is-done' : '')}">
+            <span class="dot">3</span><span>到着</span>
+          </div>
+          <span class="order-bar"></span>
+
+          <!-- ④ 評価 -->
+          <div class="order-step"
+               th:classappend="${order.orderStatus.name() == 'DELIVERED' ? ' is-active'
+                  : (order.orderStatus.name() == 'COMPLETED' ? ' is-done' : '')}">
+            <span class="dot">4</span><span>評価</span>
+          </div>
+          <span class="order-bar"></span>
+
+          <!-- ⑤ 完了 -->
+          <div class="order-step"
+               th:classappend="${order.orderStatus.name() == 'COMPLETED' ? ' is-done' : ''}">
+            <span class="dot">5</span><span>完了</span>
+          </div>
+
+        </div>
+
+        <!-- キャンセル時 -->
+        <div class="notice is-warn"
+             th:if="${order.orderStatus != null and order.orderStatus.name() == 'CANCELLED'}">
+          <div class="notice__title">この取引はキャンセルされました</div>
+          <p class="notice__text">取引は終了しています。</p>
+        </div>
+      </div>
+
+      <!-- フラッシュメッセージ -->
+      <div style="margin-top:12px;">
+        <div th:if="${errorMessage}" class="msg error" th:text="${errorMessage}"></div>
+        <div th:if="${successMessage}" class="msg success" th:text="${successMessage}"></div>
+      </div>
+
+      <!-- 状態メッセージ（今何をすればいいか） -->
+      <div th:if="${order.orderStatus != null and order.orderStatus.name() == 'PURCHASED' and canShip}"
+           class="notice is-warn" style="margin-top:10px;">
+        <div class="notice__title">次のアクション：発送</div>
+        <p class="notice__text">購入者へ商品を発送したら「発送済みにする」を押してください。</p>
+      </div>
+
+      <div th:if="${order.orderStatus != null and order.orderStatus.name() == 'SHIPPED' and canDeliver}"
+           class="notice is-warn" style="margin-top:10px;">
+        <div class="notice__title">次のアクション：到着確認</div>
+        <p class="notice__text">商品が到着したら「到着確認」を押してください。</p>
+      </div>
+
+      <div th:if="${order.orderStatus != null and order.orderStatus.name() == 'DELIVERED' and (canBuyerReview or canSellerReview)}"
+           class="notice" style="margin-top:10px;">
+        <div class="notice__title">次のアクション：評価</div>
+        <p class="notice__text">評価が完了すると取引は「取引完了」になります。</p>
+      </div>
+
+      <div th:if="${order.orderStatus != null and order.orderStatus.name() == 'COMPLETED'}"
+           class="notice is-success" style="margin-top:10px;">
+        <div class="notice__title">取引は完了しました</div>
+        <p class="notice__text">ご利用ありがとうございました。</p>
+      </div>
+
+    </section>
+
+    <div class="order-grid">
+      <!-- ====== LEFT: チャット ====== -->
+      <section class="panel">
+        <div class="panel-head">
+          <h2 class="panel-title">取引メッセージ</h2>
+          <span class="chip" th:text="${orderMessages == null ? 0 : #lists.size(orderMessages)} + '件'">0件</span>
+        </div>
+
+        <div class="chat-box">
+          <div th:each="m : ${orderMessages}" class="chat-message">
+            <div class="meta">
+              <span class="name"
+                    th:text="${m.sender != null
+                      ? ((m.sender.nickname != null and !#strings.isEmpty(m.sender.nickname))
+                          ? m.sender.nickname
+                          : m.sender.name)
+                      : '—'}">送信者</span>
+
+              <span class="time"
+                    th:text="${m.createdAt != null ? #temporals.format(m.createdAt,'yyyy/MM/dd HH:mm') : ''}">時刻</span>
+            </div>
+
+            <p class="text" th:text="${m.message}">本文</p>
+          </div>
+
+          <p th:if="${orderMessages == null or #lists.isEmpty(orderMessages)}" class="muted">
+            まだメッセージはありません。
+          </p>
+        </div>
+
+        <form class="chat-form" th:action="@{/orders/{id}/chat(id=${order.id})}" method="post">
+          <textarea name="message" required placeholder="メッセージを入力"></textarea>
+          <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+          <button class="button button--primary" type="submit">送信</button>
+        </form>
+      </section>
+
+      <!-- ====== RIGHT: アクション + 配送先 + 評価 ====== -->
+      <aside style="display:grid; gap:14px; align-self:start;">
+
+        <!-- 配送先 -->
+        <section class="panel">
+          <div class="panel-head">
+            <h2 class="panel-title">配送先情報</h2>
+            <span class="chip">確認用</span>
+          </div>
+
+          <div class="kv">
+            <div class="kv-row">
+              <div class="kv-key">宛名</div>
+              <div class="kv-val"
+                   th:text="${(order.shippingLastName != null ? order.shippingLastName : '') + ' ' + (order.shippingFirstName != null ? order.shippingFirstName : '')}">宛名</div>
+            </div>
+
+            <div class="kv-row">
+              <div class="kv-key">郵便番号</div>
+              <div class="kv-val" th:text="${order.shippingPostalCode}">000-0000</div>
+            </div>
+
+            <div class="kv-row">
+              <div class="kv-key">住所</div>
+              <div class="kv-val kv-box" th:text="${order.shippingAddress}">住所</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 出品者：発送 -->
+        <section th:if="${canShip}" class="panel">
+          <div class="panel-head">
+            <h2 class="panel-title">出品者アクション</h2>
+            <span class="chip">発送</span>
+          </div>
+
+          <div class="action-block">
+            <p class="action-hint">発送後にボタンを押すと、購入者が到着確認できるようになります。</p>
+            <form th:action="@{/orders/{id}/ship(id=${order.id})}" method="post">
+              <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+              <button class="button button--primary" type="submit">発送済みにする</button>
+            </form>
+          </div>
+        </section>
+
+        <!-- 購入者：到着確認 -->
+        <section th:if="${canDeliver}" class="panel">
+          <div class="panel-head">
+            <h2 class="panel-title">購入者アクション</h2>
+            <span class="chip">到着</span>
+          </div>
+
+          <div class="action-block">
+            <p class="action-hint">到着確認後、評価フェーズに進みます。</p>
+            <form th:action="@{/orders/{id}/deliver(id=${order.id})}" method="post">
+              <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+              <button class="button button--primary" type="submit">到着確認</button>
+            </form>
+          </div>
+        </section>
+
+        <!-- 評価（購入者 / 出品者共通） -->
+        <section th:if="${canBuyerReview or canSellerReview}" class="panel">
+          <div class="panel-head">
+            <h2 class="panel-title">評価</h2>
+            <span class="chip">必須</span>
+          </div>
+
+          <p class="action-hint">評価すると取引完了になります。</p>
+
+          <form class="review-form" th:action="@{/orders/{id}/review(id=${order.id})}" method="post">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+            <select name="result" required>
+              <option value="" disabled selected>評価を選択</option>
+              <option value="GOOD">良い</option>
+              <option value="BAD">悪い</option>
+            </select>
+
+            <textarea name="comment" placeholder="コメントを入力" required></textarea>
+
+            <button class="button button--primary" type="submit">評価する</button>
+          </form>
+        </section>
+
+        <!-- 完了 -->
+        <section th:if="${order.orderStatus != null and order.orderStatus.name() == 'COMPLETED'}" class="panel">
+          <div class="notice is-success">
+            <div class="notice__title">完了</div>
+            <p class="notice__text">この取引は完了しました。</p>
+          </div>
+        </section>
+
+      </aside>
+    </div>
+
+  </div>
+</main>
+</body>
+</html>

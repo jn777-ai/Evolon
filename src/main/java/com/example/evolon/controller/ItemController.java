@@ -2,9 +2,10 @@ package com.example.evolon.controller;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.Optional;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -40,6 +41,7 @@ import com.example.evolon.service.FavoriteService;
 import com.example.evolon.service.ItemService;
 import com.example.evolon.service.RegulationService;
 import com.example.evolon.service.ReviewService;
+import com.example.evolon.service.ReviewStatsService;
 import com.example.evolon.service.UserService;
 
 @Controller
@@ -52,7 +54,7 @@ public class ItemController {
 	private final ChatService chatService;
 	private final FavoriteService favoriteService;
 	private final ReviewService reviewService;
-
+	private final ReviewStatsService reviewStatsService;
 	private final CardNumberParserService cardNumberParserService;
 	private final CardMasterService cardMasterService;
 	private final RegulationService regulationService;
@@ -64,6 +66,7 @@ public class ItemController {
 			ChatService chatService,
 			FavoriteService favoriteService,
 			ReviewService reviewService,
+			ReviewStatsService reviewStatsService,
 			CardNumberParserService cardNumberParserService,
 			CardMasterService cardMasterService,
 			RegulationService regulationService) {
@@ -74,6 +77,7 @@ public class ItemController {
 		this.chatService = chatService;
 		this.favoriteService = favoriteService;
 		this.reviewService = reviewService;
+		this.reviewStatsService = reviewStatsService;
 		this.cardNumberParserService = cardNumberParserService;
 		this.cardMasterService = cardMasterService;
 		this.regulationService = regulationService;
@@ -84,8 +88,10 @@ public class ItemController {
 			@RequestParam(value = "keyword", required = false) String keyword,
 			@RequestParam(value = "categoryId", required = false) Long categoryId,
 			@RequestParam(value = "status", required = false) String status,
-			@RequestParam(value = "page", defaultValue = "0") int page,
-			@RequestParam(value = "size", defaultValue = "10") int size,
+
+			// ✅ 12件固定
+			@PageableDefault(size = 12) Pageable pageable,
+
 			Model model) {
 
 		ItemStatus statusEnum = parseEnumSafely(status, ItemStatus.class);
@@ -94,12 +100,10 @@ public class ItemController {
 				keyword,
 				categoryId,
 				statusEnum,
-				page,
-				size);
+				pageable);
 
 		model.addAttribute("items", items);
 		model.addAttribute("categories", categoryService.getAllCategories());
-
 		model.addAttribute("rarities", Rarity.values());
 		model.addAttribute("regulations", Regulation.values());
 		model.addAttribute("conditions", CardCondition.values());
@@ -118,10 +122,8 @@ public class ItemController {
 			@RequestParam(required = false) BigDecimal minPrice,
 			@RequestParam(required = false) BigDecimal maxPrice,
 			@RequestParam(defaultValue = "new") String sort,
-			@RequestParam(defaultValue = "0") int page,
-			@RequestParam(defaultValue = "10") int size,
+			@PageableDefault(size = 12) Pageable pageable,
 			Model model) {
-
 		Rarity rarityEnum = parseEnumSafely(rarity, Rarity.class);
 		Regulation regEnum = parseEnumSafely(regulation, Regulation.class);
 		CardCondition condEnum = parseEnumSafely(condition, CardCondition.class);
@@ -131,7 +133,7 @@ public class ItemController {
 				cardName, rarityEnum, regEnum, condEnum,
 				packName, minPrice, maxPrice, sort,
 				statusEnum,
-				page, size);
+				pageable);
 
 		model.addAttribute("items", items);
 		model.addAttribute("rarities", Rarity.values());
@@ -148,18 +150,21 @@ public class ItemController {
 			@AuthenticationPrincipal UserDetails userDetails,
 			Model model) {
 
-		Optional<Item> itemOpt = itemService.getItemById(id);
-		if (itemOpt.isEmpty())
-			return "redirect:/items";
+		Item item = itemService.getItemById(id)
+				.orElseThrow(() -> new RuntimeException("Item not found"));
 
-		Item item = itemOpt.get();
 		model.addAttribute("item", item);
 
+		// チャット（item_detail.html で使ってる）
 		model.addAttribute("chats", chatService.getChatMessagesByItem(id));
 
-		if (item.getSeller() != null) {
-			model.addAttribute("sellerGoodCount", reviewService.countGoodForSeller(item.getSeller()));
-			model.addAttribute("sellerBadCount", reviewService.countBadForSeller(item.getSeller()));
+		// 出品者（null安全）
+		User seller = item.getSeller();
+		model.addAttribute("seller", seller);
+
+		//  出品者の評価サマリ（マイページと同じ集計）
+		if (seller != null) {
+			model.addAttribute("sellerReviewStats", reviewStatsService.getStats(seller));
 		}
 
 		boolean isOwner = false;
@@ -169,10 +174,11 @@ public class ItemController {
 			User currentUser = userService.getUserByEmail(userDetails.getUsername())
 					.orElseThrow(() -> new RuntimeException("User not found"));
 
-			isOwner = item.getSeller() != null
-					&& item.getSeller().getId().equals(currentUser.getId());
+			isOwner = (seller != null && seller.getId().equals(currentUser.getId()));
 
-			isFavorited = favoriteService.isFavorited(currentUser, id);
+			// ✅ お気に入り判定（君の FavoriteService を使用）
+			// ※soldガードが service 内にあるけど、判定は問題なし
+			isFavorited = favoriteService.isFavorited(currentUser, item.getId());
 		}
 
 		model.addAttribute("isOwner", isOwner);
@@ -182,8 +188,28 @@ public class ItemController {
 	}
 
 	@GetMapping("/new")
-	public String showAddItemForm(Model model) {
+	public String showAddItemForm(
+			@AuthenticationPrincipal UserDetails userDetails,
+			RedirectAttributes redirectAttributes,
+			Model model) {
 
+		// ログインしてなければログインへ
+		if (userDetails == null) {
+			redirectAttributes.addFlashAttribute("errorMessage", "ログインしてください。");
+			return "redirect:/login";
+		}
+
+		User currentUser = userService.getUserByEmail(userDetails.getUsername())
+				.orElseThrow(() -> new RuntimeException("User not found"));
+
+		// ✅ 出品前プロフィール入力チェック
+		if (!isProfileComplete(currentUser)) {
+			redirectAttributes.addFlashAttribute("errorMessage", "出品の前にプロフィール入力が必要です。");
+			return "redirect:/my-page/profile/edit?returnTo=/items/new&backTo=/items";
+
+		}
+
+		// ===== ここから先は今まで通り =====
 		model.addAttribute("item", new Item());
 		model.addAttribute("categories", categoryService.getAllCategories());
 
@@ -196,7 +222,6 @@ public class ItemController {
 		model.addAttribute("conditions", CardCondition.values());
 		model.addAttribute("regulations", Regulation.values());
 
-		// ✅ cardCategoryId を渡す（CategoryServiceに getCategoryByName が必要）
 		Long cardCategoryId = categoryService.getCategoryByName("カード")
 				.map(Category::getId)
 				.orElse(null);
@@ -242,6 +267,13 @@ public class ItemController {
 
 		User seller = userService.getUserByEmail(userDetails.getUsername())
 				.orElseThrow(() -> new RuntimeException("Seller not found"));
+
+		// ✅ 直POST対策：プロフィール未入力なら編集へ
+		if (!isProfileComplete(seller)) {
+			redirectAttributes.addFlashAttribute("errorMessage", "出品の前にプロフィール入力が必要です。");
+			return "redirect:/my-page/profile/edit?returnTo=/items/new&backTo=/items";
+
+		}
 
 		item.setSeller(seller);
 		item.setShippingDuration(shippingDuration);
@@ -516,4 +548,31 @@ public class ItemController {
 			return null;
 		}
 	}
+
+	// ✅ 追加：null/空白判定を安全に
+	private boolean notBlank(String s) {
+		return s != null && !s.isBlank();
+	}
+
+	// ✅ 追加：プロフィール必須条件（ここを変えればルール変更できる）
+	private boolean isProfileComplete(User u) {
+		return notBlank(u.getLastName())
+				&& notBlank(u.getFirstName())
+				&& notBlank(u.getPostalCode())
+				&& notBlank(u.getAddress());
+	}
+
+	// ==============================
+	// 全メソッド共通：プロフィール完了フラグ
+	// ==============================
+	@ModelAttribute("isProfileComplete")
+	public boolean injectProfileComplete(@AuthenticationPrincipal UserDetails userDetails) {
+		if (userDetails == null)
+			return false;
+
+		return userService.getUserByEmail(userDetails.getUsername())
+				.map(this::isProfileComplete)
+				.orElse(false);
+	}
+
 }
