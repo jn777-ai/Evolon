@@ -129,6 +129,8 @@ Spring Boot + Layered Architecture を採用し、
 
 ## My Contribution
 
+本プロジェクトは3人チームで開発を行いました。
+私は主に以下の領域を担当しました。
 ### 認証・ユーザー管理機能
 
 - Spring Security を用いたログイン / ログアウト / 新規登録機能の実装
